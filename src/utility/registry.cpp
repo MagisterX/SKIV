@@ -256,6 +256,8 @@ SKIF_RegistrySettings::SKIF_RegistrySettings (void)
     bTouchInput            =   regKVTouchInput             .getData (&hKey);
   if (regKVAdjustWindow.hasData(&hKey))
     bAdjustWindow          =   regKVAdjustWindow           .getData (&hKey);
+  if (regKVUISaveCapture.hasData(&hKey))
+    bUISaveCapture         =   regKVUISaveCapture          .getData (&hKey);
 
 #if 0
   if (regKVImageScaling.hasData(&hKey))
@@ -380,6 +382,13 @@ SKIF_RegistrySettings::SKIF_RegistrySettings (void)
 
   if (regKVAutoUpdateVersion.hasData(&hKey))
     wsAutoUpdateVersion    =   regKVAutoUpdateVersion      .getData (&hKey);
+
+  if (regKVCaptureFolder.hasData(&hKey))
+  {
+    strncpy(capturePathBuf, SK_WideCharToUTF8(regKVCaptureFolder.getData (&hKey)).c_str(), sizeof(capturePathBuf));
+      wsCaptureFolder      =   regKVCaptureFolder          .getData (&hKey);    
+  }else
+      wsCaptureFolder      =   regKVPathViewer             .getData () + LR"(\Screenshots\)";
 
   bDeveloperMode           =   regKVDeveloperMode          .getData (&hKey);
 

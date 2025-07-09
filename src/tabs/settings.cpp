@@ -170,6 +170,48 @@ SKIF_UI_Tab_DrawSettings (void)
 
 #endif
 
+    ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Info), ICON_FA_LIGHTBULB);
+    SKIF_ImGui_SetHoverTip("Automatically saves captured image.");
+    ImGui::SameLine();
+    ImGui::TextColored(
+      ImGui::GetStyleColorVec4(ImGuiCol_SKIF_TextCaption),
+      "Capture behaviour:"
+    );
+    ImGui::TreePush("ScreenCapture");
+    if (ImGui::Checkbox("Save to folder", &_registry.bUISaveCapture))
+    {
+      _registry.regKVUISaveCapture.putData(_registry.bUISaveCapture);
+
+      ImGuiStyle            newStyle;
+      SKIF_ImGui_SetStyle(&newStyle);
+      if (_registry.capturePathBuf[0] == '\0')
+      {
+        _registry.wsCaptureFolder = _registry.regKVPathViewer.getData() + LR"(\Screenshots\)";
+        _registry.regKVCaptureFolder.putData(SK_UTF8ToWideChar(_registry.capturePathBuf));
+      }
+    }
+    ImGui::Text("Folder Path:");
+    SKIF_ImGui_SetHoverTip("Leave empty to save at current executable folder.");
+    ImGui::SameLine();
+    if (ImGui::InputText("##customFolderPath", _registry.capturePathBuf, IM_ARRAYSIZE(_registry.capturePathBuf)))
+    {
+      if (_registry.capturePathBuf[0] == '\0')
+      {
+        _registry.wsCaptureFolder = _registry.regKVPathViewer.getData() + LR"(\Screenshots\)";
+        _registry.regKVCaptureFolder.putData(SK_UTF8ToWideChar(_registry.capturePathBuf));
+      }
+      else
+      {
+        _registry.wsCaptureFolder = SK_UTF8ToWideChar(_registry.capturePathBuf);
+        _registry.regKVCaptureFolder.putData(SK_UTF8ToWideChar(_registry.capturePathBuf));
+      }
+    }
+    if (!std::filesystem::exists(_registry.wsCaptureFolder))    
+      ImGui::Text("Folder doesn't exist.");    
+    else    
+      ImGui::Text("Folder exist.");    
+    ImGui::TreePop();
+
     ImGui::TextColored     (ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Info), ICON_FA_LIGHTBULB);
     SKIF_ImGui_SetHoverTip ("Useful if you find bright images an annoyance.");
     ImGui::SameLine        ( );

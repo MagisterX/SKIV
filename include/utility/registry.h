@@ -173,6 +173,10 @@ struct SKIF_RegistrySettings {
     SKIF_MakeRegKeyB ( LR"(SOFTWARE\Kaldaien\Special K\Viewer\)",
                          LR"(Borders)" );
 
+  KeyValue <bool> regKVUISaveCapture =
+    SKIF_MakeRegKeyB ( LR"(SOFTWARE\Kaldaien\Special K\Viewer\)",
+                         LR"(SaveCapture)" );
+
   KeyValue <bool> regKVUITooltips =
     SKIF_MakeRegKeyB ( LR"(SOFTWARE\Kaldaien\Special K\Viewer\)",
                          LR"(Tooltips)" );
@@ -349,6 +353,10 @@ struct SKIF_RegistrySettings {
     SKIF_MakeRegKeyWS ( LR"(SOFTWARE\Kaldaien\Special K\Viewer\)",
                          LR"(Ignore Update)" );
 
+  KeyValue<std::wstring> regKVCaptureFolder =
+    SKIF_MakeRegKeyWS(LR"(SOFTWARE\Kaldaien\Special K\Viewer\)",
+                         LR"(CaptureFolder)");
+
   KeyValue <std::wstring> regKVUpdateChannel =
     SKIF_MakeRegKeyWS ( LR"(SOFTWARE\Kaldaien\Special K\Viewer\)",
                          LR"(Update Channel)" );
@@ -432,6 +440,7 @@ struct SKIF_RegistrySettings {
   bool bUITooltips              =  true;
   bool bUIStatusBar             =  true;
   bool bUICaptionButtons        = false; // Minimize, Close
+  bool bUISaveCapture           = false;
   bool bDPIScaling              =  true;
   bool bWin11Corners            =  true; // 2023-08-28: Enabled by default
   bool bTouchInput              =  true; // Automatically make the UI more optimized for touch input on capable devices
@@ -460,6 +469,9 @@ struct SKIF_RegistrySettings {
   std::wstring wsAutoUpdateVersion; // Holds the version the auto-updater is trying to install
   std::wstring wsDefaultHDRExt = L".png";
   std::wstring wsDefaultSDRExt = L".png";
+  std::wstring wsCaptureFolder;
+  std::wstring test;
+  char capturePathBuf[256] = { 0 };//stupid imGui InputText doesn't accept wstring
 
   // Encoder config
   struct {

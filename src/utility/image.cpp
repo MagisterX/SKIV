@@ -1129,6 +1129,15 @@ using namespace DirectX;
   {
     if (SUCCEEDED (SKIV_Image_SaveToDisk_HDR (*pImage, wsPNGPath.c_str())))
     {
+      if (_registry.bUISaveCapture)
+      {
+        //no need to save same image twice, just copy instead
+        std::wstring Path = _registry.wsCaptureFolder;
+        if (!Path.empty() && Path.back() != L'\\' && Path.back() != L'/')
+          Path += L"\\";
+        Path += GenerateTimestampedFilename();
+        std::filesystem::copy_file(wsPNGPath.c_str(), Path.data(), std::filesystem::copy_options::overwrite_existing);
+      }
       PLOG_VERBOSE << "SKIF_Image_SaveToDisk_HDR ( ): SUCCEEDED";
 
       if (SKIV_PNG_CopyToClipboard (*pImage, wsPNGPath.c_str(), 0))
@@ -1176,6 +1185,10 @@ using namespace DirectX;
     ////SK_ReleaseAssert (pImage->format == DXGI_FORMAT_B8G8R8X8_UNORM ||
     ////                  pImage->format == DXGI_FORMAT_B8G8R8A8_UNORM ||
     ////                  pImage->format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB);
+    if (_registry.bUISaveCapture)
+    {
+      SKIV_Image_SaveToCustomDir(pImage, _registry.wsCaptureFolder);
+    }
 
     HBITMAP hBitmapCopy =
        CreateBitmap (
@@ -2427,6 +2440,44 @@ SKIV_Image_LoadUltraHDR (DirectX::ScratchImage& image, void* data, int size)
 }
 
 void sk_avif_add_icc_to_image (avifImage* img);
+
+HRESULT
+SKIV_Image_SaveToCustomDir(const DirectX::Image* pImage, std::wstring Path)
+{
+  // Create missing directory
+  if (!std::filesystem::exists(Path))
+    std::filesystem::create_directories(Path);
+  // Ensure trailing backslash 
+  if (!Path.empty() && Path.back() != L'\\' && Path.back() != L'/')
+    Path += L"\\";
+
+  // Append timestamped filename
+  Path += GenerateTimestampedFilename();
+  HRESULT hr;
+  hr = SKIV_Image_SaveToDisk_SDR(*pImage, Path.data(), false);
+  if (FAILED(hr))
+  {
+    // Crap...
+    ImGui::InsertNotification(
+      {
+        ImGuiToastType::Error,
+        15000,
+        "File Save", "Failed to Save '%ws', HRESULT=%x",
+        Path, hr
+      });
+    return E_UNEXPECTED;
+  }
+  else {
+    ImGui::InsertNotification(
+      {
+        ImGuiToastType::Info,
+        3000,
+        "Image saved to folder", ""
+      }
+    );
+  return S_OK;
+  }
+}
 
 HRESULT
 SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileName)

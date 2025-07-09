@@ -4466,3 +4466,20 @@ SK_File_GetSize (const wchar_t* wszFile)
 
   return 0ULL;
 }
+
+std::wstring
+GenerateTimestampedFilename()
+{
+  auto now = std::chrono::system_clock::now();
+  std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+  std::tm tm;
+#ifdef _WIN32
+  localtime_s(&tm, &now_time);
+#else
+  localtime_r(&now_time, &tm);
+#endif
+
+  std::wstringstream ss;
+  ss << std::put_time(&tm, L"%Y-%m-%d %H-%M-%S") << L".png";
+  return ss.str();
+}

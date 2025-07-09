@@ -809,7 +809,8 @@ struct SK_KeybindMultiState
   SK_Keybind   saved, pending;
 
   // This empty object is used during assignment to disable hotkeys temporarily
-  static constexpr SK_Keybind disabled = { };
+  //Compiler didn't like original line and was giving C2131
+  inline static const SK_Keybind disabled = { };
 
   SK_KeybindMultiState (const char* _n, std::wstring _h) {
     bind_name                   = _n;

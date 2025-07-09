@@ -217,6 +217,7 @@ DirectX::Image  SKIF_Util_GetClipboardBitmapData      (void);
 std::wstring    SKIF_Util_AddEnvironmentBlock         (const void* pEnvBlock, const std::wstring& varName, const std::wstring& varValue);
 void            SKIF_Util_FileExplorer_SelectFile     (PCWSTR filePath);
 std::string     SKIF_Util_GetWindowMessageAsStr       (UINT msg);
+std::wstring    GenerateTimestampedFilename           ();
 
 
 // Power Mode

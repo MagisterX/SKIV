@@ -30,7 +30,7 @@ IF NOT DEFINED VSCMD_VER (
 
 @REM Build Special K Injection Frontend
 cd /D "%~dp0"
-call "%~dp0buildx86.bat"
+rem call "%~dp0buildx86.bat"
 call "%~dp0buildx64.bat"
 
 @REM Post-build tasks
