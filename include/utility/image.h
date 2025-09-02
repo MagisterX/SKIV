@@ -40,6 +40,14 @@ constexpr DirectX::XMMATRIX c_from709toDCIP3 = // Transposed
   { 0.0f,                          0.0f,                          0.0f,                         1.0f }
 };
 
+constexpr DirectX::XMMATRIX c_fromDCIP3to709 = // Transposed inverse
+{
+  {  1.215661f,  -0.041757f,  -0.022841f,  0.0f },
+  { -0.223146f,   1.038042f,  -0.080108f,  0.0f },
+  {  0.0f,        0.0f,        1.098369f,  0.0f },
+  {  0.0f,        0.0f,        0.0f,       1.0f }
+};
+
 constexpr DirectX::XMMATRIX c_from709toAP0 = // Transposed
 {
   { 0.4339316189289093017578125f, 0.088618390262126922607421875f, 0.01775003969669342041015625f,  0.0f },
@@ -94,6 +102,14 @@ constexpr DirectX::XMMATRIX c_Bt2100toscRGB = // Transposed
   { -123225331250.0f / 1677558947.0f, 5273377093000.0f / 37238079773.0f, -472592308000.0f / 37589778163.0f, 0.0f },
   {  -15276242500.0f / 1677558947.0f,  -38864558125.0f / 37238079773.0f, 5256599974375.0f / 37589778163.0f, 0.0f },
   {                             0.0f,                              0.0f,                              0.0f, 1.0f }
+};
+
+constexpr DirectX::XMMATRIX c_from601to709 = // Transposed
+{
+  { 1.0000f,  0.0000f,  0.0000f,  0.0f },
+  { 0.0000f,  1.0000f,  0.0000f,  0.0f },
+  { 0.0000f,  0.0000f,  0.9184f,  0.0f },
+  { 0.0000f,  0.0000f,  0.0000f,  1.0f }
 };
 
 struct ParamsPQ

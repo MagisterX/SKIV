@@ -1688,7 +1688,7 @@ LoadLibraryTexture (image_s& image)
                             size_t    y)
                   {
                     UNREFERENCED_PARAMETER(y);
-                  
+
                     for (size_t j = 0; j < width; ++j)
                     {
                       XMVECTOR v = inPixels [j];
@@ -1696,6 +1696,64 @@ LoadLibraryTexture (image_s& image)
                       v =
                         XMVectorScale (
                           XMVector3Transform (SKIV_Image_PQToLinear (v), c_fromXYZto709), 125.0f
+                        );
+
+                      outPixels [j] = v;
+                    }
+                  }, img )
+                )
+              )
+            {
+              temp_img.Release ();
+            }
+          }
+
+          else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT601)
+          {
+            if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
+                  [&](      XMVECTOR* outPixels,
+                      const XMVECTOR* inPixels,
+                            size_t    width,
+                            size_t    y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR v = inPixels [j];
+
+                      v =
+                        XMVectorScale (
+                          XMVector3Transform (SKIV_Image_PQToLinear (v), c_from601to709), 125.0f
+                        );
+
+                      outPixels [j] = v;
+                    }
+                  }, img )
+                )
+              )
+            {
+              temp_img.Release ();
+            }
+          }
+
+          else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_DCI_P3)
+          {
+            if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
+                  [&](      XMVECTOR* outPixels,
+                      const XMVECTOR* inPixels,
+                            size_t    width,
+                            size_t    y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR v = inPixels [j];
+
+                      v =
+                        XMVectorScale (
+                          XMVector3Transform (SKIV_Image_PQToLinear (v), c_fromDCIP3to709), 125.0f
                         );
 
                       outPixels [j] = v;
@@ -1718,7 +1776,7 @@ LoadLibraryTexture (image_s& image)
                             size_t    y)
                   {
                     UNREFERENCED_PARAMETER(y);
-                  
+
                     for (size_t j = 0; j < width; ++j)
                     {
                       XMVECTOR v = inPixels [j];
@@ -1760,7 +1818,7 @@ LoadLibraryTexture (image_s& image)
                             size_t    y)
                   {
                     UNREFERENCED_PARAMETER(y);
-                  
+
                     for (size_t j = 0; j < width; ++j)
                     {
                       XMVECTOR v = inPixels [j];
