@@ -1030,32 +1030,30 @@ LoadLibraryTexture (image_s& image)
       return false;
     }
 
-    else
-    {
-      std::vector <char>
+    std::vector <char>
               buffer         (maxLength);
       fread  (buffer.data (), maxLength, 1, pImageFile);
       rewind (                              pImageFile);
 
-      for (auto& type : supported_formats)
-      {
+    for (auto& type : supported_formats)
+    {
         if (SKIF_Util_HasFileSignature (buffer, type))
-        {
-          image_sig = &type;
+      {
+        image_sig = &type;
 
-          PLOG_INFO << "Detected an " << type.mime_type << " image";
+        PLOG_INFO << "Detected an " << type.mime_type << " image";
 
-          decoder = 
+        decoder =
              (type.mime_type == L"image/jpeg"                ) ?
                    (SKIV_Image_IsUltraHDR (imagePath.c_str ()) ? ImageDecoder_UHDR :
                                                                  SKIV_DEFAULT_GENERAL_PURPOSE_DECODER):
              (type.mime_type == L"image/png"                 ) ? ImageDecoder_stbi :
-             //(type.mime_type == L"image/png"                 ) ? ImageDecoder_WIC  : // Use WIC for proper color correction and for decoding many PNG images that stbi cannot
+          //(type.mime_type == L"image/png"                 ) ? ImageDecoder_WIC  : // Use WIC for proper color correction and for decoding many PNG images that stbi cannot
              (type.mime_type == L"image/bmp"                 ) ? SKIV_DEFAULT_GENERAL_PURPOSE_DECODER :
              (type.mime_type == L"image/vnd.adobe.photoshop" ) ? ImageDecoder_stbi : // Consider gamma broken, since stbi doesn't handle it correctly
              (type.mime_type == L"image/gif"                 ) ? SKIV_DEFAULT_GENERAL_PURPOSE_DECODER :
              (type.mime_type == L"image/vnd.radiance"        ) ? ImageDecoder_HDR  :
-           //(type.mime_type == L"image/x-targa"             ) ? ImageDecoder_stbi : // TGA has no real unique header identifier, so just use the file extension on those
+          //(type.mime_type == L"image/x-targa"             ) ? ImageDecoder_stbi : // TGA has no real unique header identifier, so just use the file extension on those
              (type.mime_type == L"image/vnd.ms-photo"        ) ? ImageDecoder_WIC  :
              (type.mime_type == L"image/webp"                ) ? ImageDecoder_WIC  :
              (type.mime_type == L"image/tiff"                ) ? ImageDecoder_WIC  :
@@ -1067,26 +1065,25 @@ LoadLibraryTexture (image_s& image)
 #ifdef _M_X64
              (type.mime_type == L"image/x-exr"               ) ? ImageDecoder_EXR  :
 #endif
-                                                                 ImageDecoder_WIC;   // Not actually being used
+          ImageDecoder_WIC;   // Not actually being used
 
-          // None of this is technically correct other than the .hdr case,
-          //   they can all be SDR or HDR.
-          if (type.mime_type == L"image/vnd.radiance" || // .hdr
-              type.mime_type == L"image/vnd.ms-photo" || // .jxr
-              type.mime_type == L"image/avif"         || // .avif
-              type.mime_type == L"image/x-exr")          // .exr
-          {
-            image.is_hdr = true;
-          }
-
-          if (type.mime_type == L"image/png")
-          {
-            // XXX: Check for the appropriate chunk
-            need_srgb = true;
-          }
-
-          break;
+        // None of this is technically correct other than the .hdr case,
+        //   they can all be SDR or HDR.
+        if (type.mime_type == L"image/vnd.radiance" || // .hdr
+            type.mime_type == L"image/vnd.ms-photo" || // .jxr
+            type.mime_type == L"image/avif"         || // .avif
+            type.mime_type == L"image/x-exr")          // .exr
+        {
+          image.is_hdr = true;
         }
+
+        if (type.mime_type == L"image/png")
+        {
+          // XXX: Check for the appropriate chunk
+          need_srgb = true;
+        }
+
+        break;
       }
     }
   }
@@ -1688,7 +1685,7 @@ LoadLibraryTexture (image_s& image)
                             size_t    y)
                   {
                     UNREFERENCED_PARAMETER(y);
-
+                  
                     for (size_t j = 0; j < width; ++j)
                     {
                       XMVECTOR v = inPixels [j];
@@ -1696,64 +1693,6 @@ LoadLibraryTexture (image_s& image)
                       v =
                         XMVectorScale (
                           XMVector3Transform (SKIV_Image_PQToLinear (v), c_fromXYZto709), 125.0f
-                        );
-
-                      outPixels [j] = v;
-                    }
-                  }, img )
-                )
-              )
-            {
-              temp_img.Release ();
-            }
-          }
-
-          else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT601)
-          {
-            if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
-                  [&](      XMVECTOR* outPixels,
-                      const XMVECTOR* inPixels,
-                            size_t    width,
-                            size_t    y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      XMVECTOR v = inPixels [j];
-
-                      v =
-                        XMVectorScale (
-                          XMVector3Transform (SKIV_Image_PQToLinear (v), c_from601to709), 125.0f
-                        );
-
-                      outPixels [j] = v;
-                    }
-                  }, img )
-                )
-              )
-            {
-              temp_img.Release ();
-            }
-          }
-
-          else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_DCI_P3)
-          {
-            if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
-                  [&](      XMVECTOR* outPixels,
-                      const XMVECTOR* inPixels,
-                            size_t    width,
-                            size_t    y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      XMVECTOR v = inPixels [j];
-
-                      v =
-                        XMVectorScale (
-                          XMVector3Transform (SKIV_Image_PQToLinear (v), c_fromDCIP3to709), 125.0f
                         );
 
                       outPixels [j] = v;
@@ -1776,7 +1715,7 @@ LoadLibraryTexture (image_s& image)
                             size_t    y)
                   {
                     UNREFERENCED_PARAMETER(y);
-
+                  
                     for (size_t j = 0; j < width; ++j)
                     {
                       XMVECTOR v = inPixels [j];
@@ -1818,7 +1757,7 @@ LoadLibraryTexture (image_s& image)
                             size_t    y)
                   {
                     UNREFERENCED_PARAMETER(y);
-
+                  
                     for (size_t j = 0; j < width; ++j)
                     {
                       XMVECTOR v = inPixels [j];
@@ -2677,6 +2616,56 @@ SKIV_Viewer_CycleScalingModes (void)
   return cover.scaling;
 }
 
+void
+SKIF_DeleteImage()
+{
+  if (cover.pRawTexSRV.p != nullptr)
+  {
+    if (!std::filesystem::exists(cover.file_info.path))
+    {
+      ImGui::InsertNotification(
+        {
+          ImGuiToastType::Error,
+          3000,
+          "Image doesn't exist.", ""
+        }
+      );
+      return;
+    }
+
+    if (SKIF_Util_MoveToRecycleBin(cover.file_info.path))
+    {
+      ImGui::InsertNotification(
+        {
+          ImGuiToastType::Info,
+          3000,
+          "Image was deleted", ""
+        }
+      );
+    }
+    else
+    {
+      ImGui::InsertNotification(
+        {
+          ImGuiToastType::Error,
+          3000,
+          "Failed to delete image.", ""
+        }
+      );
+    }
+  }
+  else
+  {
+    ImGui::InsertNotification(
+      {
+        ImGuiToastType::Info,
+        500,
+        "No image loaded", ""
+      }
+    );
+  }
+}
+
 // Main UI function
 
 void
@@ -2910,6 +2899,7 @@ SKIF_UI_Tab_DrawViewer (void)
     SKIF_DirectoryWatch       watch;
     std::vector<std::wstring> fileList;
     unsigned int              fileListIndex = 0;
+    unsigned int              imagesInFolder = 0;
 
     void reset (void)
     {
@@ -2924,24 +2914,68 @@ SKIF_UI_Tab_DrawViewer (void)
       watch.reset();
     }
 
-    std::wstring nextImage (void)
+    bool FixIndexAndCleanup(std::vector<std::wstring>& fileList, unsigned int& index, bool backwards)
     {
-      if (fileList.size() == 0 || fileListIndex == fileList.size() - 1)
+      namespace fs = std::filesystem;
+
+      while (index < fileList.size())
+      {
+        std::wstring full = path;
+        if (!full.empty() && full.back() != L'\\' && full.back() != L'/')
+          full += L"\\";
+        full += fileList[index];
+
+        if (fs::exists(full))
+          return true; // got a valid file
+
+        // Remove missing file
+        fileList.erase(fileList.begin() + index);
+
+        // If list becomes empty
+        if (fileList.empty())
+          return false;
+
+        if (backwards)
+          if (index == 0)
+            index = fileList.size() - 1;
+          else
+            index--;
+        index %= fileList.size();
+      }
+
+      // If index ended up >= size, wrap
+      index %= fileList.size();
+      return true;
+    }
+
+    std::wstring nextImage()
+    {
+      if (fileList.empty())
         return L"";
 
       fileListIndex++;
       fileListIndex %= fileList.size();
-      return (path + LR"(\)" + fileList[fileListIndex]);
-    }
 
-    std::wstring prevImage (void)
-    {
-      if (fileList.size() == 0 || fileListIndex == 0)
+      if (!FixIndexAndCleanup(fileList, fileListIndex, false))
         return L"";
 
-      fileListIndex--;
-      fileListIndex %= fileList.size();
-      return (path + LR"(\)" + fileList[fileListIndex]);
+      return path + LR"(\)" + fileList[fileListIndex];
+    }
+
+    std::wstring prevImage()
+    {
+      if (fileList.empty())
+        return L"";
+
+      if (fileListIndex == 0)
+        fileListIndex = fileList.size() - 1;
+      else
+        fileListIndex--;
+
+      if (!FixIndexAndCleanup(fileList, fileListIndex, true))
+        return L"";
+
+      return path + LR"(\)" + fileList[fileListIndex];
     }
 
     // Find the position of the image in the current folder
@@ -2990,6 +3024,7 @@ SKIF_UI_Tab_DrawViewer (void)
             filtered.push_back (file);
 
         fileList = filtered;
+        imagesInFolder = fileList.size();
 
         if (! fileList.empty())
         {
@@ -3006,7 +3041,7 @@ SKIF_UI_Tab_DrawViewer (void)
         }
       }
 
-      PLOG_DEBUG << "Found " << fileList.size() << " supported images in the folder.";
+      PLOG_DEBUG << "Found " << imagesInFolder << " supported images in the folder.";
     }
   } static _current_folder;
 
@@ -3037,6 +3072,7 @@ SKIF_UI_Tab_DrawViewer (void)
 
       // This triggers a new updateFolderData() run below
       dwLastSignaled = 1;
+      _current_folder.updateFolderData();
     }
 
     // Identify when a new file from the same folder has been dropped
@@ -3046,6 +3082,7 @@ SKIF_UI_Tab_DrawViewer (void)
       std::filesystem::path path = SKIF_Util_NormalizeFullPath (cover.file_info.path);
       _current_folder.filename   = path.filename().wstring();
       _current_folder.findFileIndex ( );
+      _current_folder.updateFolderData();
     }
 
     // Identify when the folder was changed outside of the app
@@ -3057,7 +3094,8 @@ SKIF_UI_Tab_DrawViewer (void)
 
     if (dwLastSignaled != 0 && dwLastSignaled + 500 < SKIF_Util_timeGetTime())
     {
-      _current_folder.updateFolderData();
+      //automatic folder update don't work with file deletion from skiv
+      //_current_folder.updateFolderData();
       dwLastSignaled = 0;
     }
   }
@@ -3086,7 +3124,11 @@ SKIF_UI_Tab_DrawViewer (void)
       else if (! cover.file_info.path.empty() && // Ctrl+E - Browse folder
                ImGui::GetKeyData (ImGuiKey_E)->DownDuration == 0.0f)
         SKIF_Util_FileExplorer_SelectFile (cover.file_info.path.c_str());
+      else if(ImGui::GetKeyData(ImGuiKey_U)->DownDuration == 0.0f) //Ctrl + U - Refresh/update folder
+        _current_folder.updateFolderData();
     }
+    if (ImGui::GetKeyData(ImGuiKey_Delete)->DownDuration == 0.0f) //Delete - Move file to trashbin
+      SKIF_DeleteImage();
   }
 
 #pragma endregion
@@ -3365,6 +3407,7 @@ SKIF_UI_Tab_DrawViewer (void)
     float posXvalues = 150.0f * SKIF_ImGui_GlobalDPIScale;
 
     { // Basic File Details
+      char     szCount       [20]  = { };
       char     szLabels      [512] = { };
       char     szLabelsData  [512] = { };
 
@@ -3392,6 +3435,8 @@ SKIF_UI_Tab_DrawViewer (void)
 
       // Basic
       else {
+        sprintf(szCount,       "%d/%d", _current_folder.fileListIndex+1,
+                                        _current_folder.imagesInFolder);
         sprintf (szLabels,     "Image:\n"
                                "File Size:");
         sprintf (szLabelsData, "%s\n"
@@ -3408,6 +3453,7 @@ SKIF_UI_Tab_DrawViewer (void)
                                                                              "Bytes");
       }
 
+      ImGui::TextUnformatted (szCount);
       ImGui::TextUnformatted (szLabels);
       ImGui::SameLine        (posXvalues);
       ImGui::TextUnformatted (szLabelsData);
@@ -4064,20 +4110,22 @@ SKIF_UI_Tab_DrawViewer (void)
 
     else if (cover.pRawTexSRV.p != nullptr)
     {
-      if (SKIF_ImGui_MenuItemEx2 ("Save As...", ICON_FA_FLOPPY_DISK,    ImGui::GetStyleColorVec4(ImGuiCol_Text),      "Ctrl+S"))
+      if (SKIF_ImGui_MenuItemEx2 ("Save As...",    ICON_FA_FLOPPY_DISK,   ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Success),         "Ctrl+S"))
         SaveFileDialog = PopupState_Open;
       if (cover.is_hdr &&
-          SKIF_ImGui_MenuItemEx2 ("Export to SDR", ICON_FA_FILE_EXPORT, ImGui::GetStyleColorVec4(ImGuiCol_Text),      "Ctrl+X"))
+          SKIF_ImGui_MenuItemEx2 ("Export to SDR", ICON_FA_FILE_EXPORT,   ImGui::GetStyleColorVec4(ImGuiCol_Text),         "Ctrl+X"))
         ExportSDRDialog = PopupState_Open;
-      if (SKIF_ImGui_MenuItemEx2 ("Encoder Setup", ICON_FA_GEARS,       ImGui::GetStyleColorVec4(ImGuiCol_Text),      "Ctrl+B"))
+      if (SKIF_ImGui_MenuItemEx2 ("Encoder Setup", ICON_FA_GEARS,         ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Warning),         "Ctrl+B"))
         ConfigEncoders = PopupState_Open;
       if (//cover.is_hdr &&
-          SKIF_ImGui_MenuItemEx2 ("Copy",          ICON_FA_CLIPBOARD,   ImGui::GetStyleColorVec4(ImGuiCol_Text),      "Ctrl+C"))
-      {
+          SKIF_ImGui_MenuItemEx2 ("Copy",          ICON_FA_CLIPBOARD,     ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Success), "Ctrl+C"))
         wantCopyToClipboard = true;
-      }
-      //if (SKIF_ImGui_MenuItemEx2 ("Close", 0,                           ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Info), "Ctrl+W"))
-      //  _SwapOutCover ();
+      if (SKIF_ImGui_MenuItemEx2("Delete",         ICON_FA_TRASH_CAN,     ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Failure), "Delete"))
+        SKIF_Util_MoveToRecycleBin(cover.file_info.path.c_str());
+      if (SKIF_ImGui_MenuItemEx2 ("Close",         ICON_FA_XMARK,         ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Failure), "Ctrl+W"))
+        _SwapOutCover ();
+      if (SKIF_ImGui_MenuItemEx2("Update folder",  ICON_FA_ARROWS_ROTATE, ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Info),    "Ctrl+U"))
+      _current_folder.updateFolderData();
 
       // Image scaling
 

@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{206ab144-6e1a-42f1-8e60-445432582ce6}</ProjectGuid>
+    <RootNamespace>SKIVCLI</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <VCToolsVersion>14.44.35207</VCToolsVersion>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <VCToolsVersion>14.44.35207</VCToolsVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\Builds_CLI\</OutDir>
+    <IntDir>..\Builds_CLI\$(Platform)-$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+    <OutDir>..\Builds_CLI\</OutDir>
+    <IntDir>..\Builds_CLI\$(Platform)-$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>
+      </SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINDOWS;%(PreprocessorDefinitions);_WIN64</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)include;$(SolutionDir)packages_misc;$(SolutionDir)packages</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;d3d11.lib;dbghelp.lib;dwmapi.lib;dxgi.lib;gdi32.lib;kernel32.lib;odbc32.lib;odbccp32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_WINDOWS;%(PreprocessorDefinitions);_WIN64</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <OpenMPSupport>false</OpenMPSupport>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <ErrorReporting>None</ErrorReporting>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)include;$(SolutionDir)packages_misc;$(SolutionDir)packages</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName />
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SetChecksum>true</SetChecksum>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <Profile>false</Profile>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <AdditionalDependencies>d3d11.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ProgramDatabaseFile />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\utility\DirectXTexEXR.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="SKIV_CLI.cpp" />
+    <ClCompile Include="Utility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\avif\avif.h" />
+    <ClInclude Include="..\include\utility\DirectXTexEXR.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\half.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\halfExport.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\halfFunction.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\halfLimits.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\Iex.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexBaseExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexErrnoExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexExport.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexForward.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMacros.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathFloatExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathFpu.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathIeeeExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexNamespace.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexThrowErrnoExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmBaseConfig.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThread.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadExport.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadForward.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadMutex.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadNamespace.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadPool.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadSemaphore.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathBox.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathBoxAlgo.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathColor.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathColorAlgo.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathEuler.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathExc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathExport.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathForward.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFrame.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFrustum.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFrustumTest.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFun.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathGL.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathGLU.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathHalfLimits.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathInt64.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathInterval.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathLimits.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathLine.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathLineAlgo.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathMath.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathMatrix.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathMatrixAlgo.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathNamespace.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathPlane.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathPlatform.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathQuat.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathRandom.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathRoots.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathShear.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathSphere.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathVec.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfAcesFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfArray.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfB44Compressor.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfBoxAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChannelList.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChannelListAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChromaticities.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChromaticitiesAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCompositeDeepScanLine.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCompression.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCompressionAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfConvert.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCRgbaFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepCompositing.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepFrameBuffer.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImage.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageChannel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageIO.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageLevel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageState.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageStateAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineInputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineInputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineOutputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineOutputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledInputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledInputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledOutputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledOutputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDoubleAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfEnvmap.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfEnvmapAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfExport.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImage.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImageChannel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImageIO.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImageLevel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFloatAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFloatVectorAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfForward.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFrameBuffer.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFramesPerSecond.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfGenericInputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfGenericOutputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfHeader.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfHuf.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImage.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageChannel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageChannelRenaming.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageDataWindow.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageIO.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageLevel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfInputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfInputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfInt64.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfIntAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfIO.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfKeyCode.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfKeyCodeAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfLineOrder.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfLineOrderAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfLut.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMatrixAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMisc.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMultiPartInputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMultiPartOutputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMultiView.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfName.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfNamespace.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfOpaqueAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfOutputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfOutputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPartHelper.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPartType.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPixelType.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPreviewImage.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPreviewImageAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRational.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRationalAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRgba.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRgbaFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRgbaYca.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfSampleCountChannel.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStandardAttributes.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStdIO.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStringAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStringVectorAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTestFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfThreading.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTileDescription.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTileDescriptionAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledInputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledInputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledOutputFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledOutputPart.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledRgbaFile.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTimeCode.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTimeCodeAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfUtilExport.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfVecAttribute.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfVersion.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfWav.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfXdr.h" />
+    <ClInclude Include="..\packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\OpenEXRConfig.h" />
+    <ClInclude Include="..\packages_misc\stb_image.h" />
+    <ClInclude Include="Image.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
+    <ClInclude Include="SKIV_CLI.h" />
+    <ClInclude Include="Utility.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SKIV_CLI.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <Import Project="$(SolutionDir)packages\directxtex_desktop_2019.2024.6.5.1\build\native\directxtex_desktop_2019.targets" />
+  <Import Project="$(SolutionDir)packages\openexr-msvc-x64.2.3.0.8788\build\native\OpenEXR-msvc-x64.targets" />
+  <Import Project="$(SolutionDir)packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets" />
+</Project>

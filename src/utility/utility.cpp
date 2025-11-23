@@ -3152,6 +3152,35 @@ SKIF_Util_UpdateMonitors (void)
   g_WantUpdateMonitors = true;
 }
 
+bool
+SKIF_Util_MoveToRecycleBin(const std::wstring& path)
+{
+  CoInitialize(NULL);
+
+  IFileOperation* pfo = nullptr;
+  if (FAILED(CoCreateInstance(CLSID_FileOperation, NULL, CLSCTX_ALL, IID_PPV_ARGS(&pfo))))
+    return false;
+
+  pfo->SetOperationFlags(
+    FOF_SILENT |
+    FOF_NOCONFIRMATION |
+    FOF_ALLOWUNDO
+  );
+
+  IShellItem* psi = nullptr;
+  if (FAILED(SHCreateItemFromParsingName(path.c_str(), NULL, IID_PPV_ARGS(&psi))))
+    return false;
+
+  pfo->DeleteItem(psi, NULL);
+  psi->Release();
+
+  HRESULT hr = pfo->PerformOperations();
+  pfo->Release();
+  CoUninitialize();
+
+  return SUCCEEDED(hr);
+}
+
 // Register a hotkey for toggling HDR on a per-display basis (WinKey + Ctrl + Shift + H)
 bool
 SKIF_Util_RegisterHotKeyHDRToggle (const SK_Keybind* binding)

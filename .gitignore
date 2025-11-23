@@ -4,6 +4,7 @@
 
 /.vs
 /Builds/*
+/Builds_CLI/*
 /packages/*
 /include/shaders/*.h
 /SKIV.vcxproj.user
@@ -13,6 +14,7 @@
 /resources/shaders/imgui_vtx.h
 /steam_appid.txt
 /include/imgui_old/*
+/SKIV_CLI/x64/*
 /src/imgui_old/*
 /resources/icons/SKIV_org.ico
 /resources/icons/SKIV2.ico

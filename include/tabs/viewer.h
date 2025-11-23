@@ -24,6 +24,7 @@
 
 #include <cstdint>
 
+void SKIF_DeleteImage       ();
 void SKIF_UI_Tab_DrawViewer (void);
 
 enum SKIV_HDR_Visualizations

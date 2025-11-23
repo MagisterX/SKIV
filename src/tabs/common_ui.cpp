@@ -39,10 +39,10 @@ void SKIF_UI_DrawComponentVersion (void)
   ImGui::SameLine         ( );
   ImGui::ItemSize         (ImVec2 (0.0f, ImGui::GetTextLineHeight ()));
   ImGui::SameLine         ( );
-  ImGui::TextColored      (ImGui::GetStyleColorVec4(ImGuiCol_SKIF_TextBase), SKIV_VERSION_STR_A " (" __DATE__ ") modified");
+  ImGui::TextColored      (ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Info), SKIV_VERSION_STR_A " (" __DATE__ ") modified");
 #ifdef _DEBUG
   ImGui::SameLine();
-  ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_SKIF_TextBase), " debug");
+  ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_SKIF_Warning), " debug");
 #endif
 
   ImGui::EndGroup         ( );

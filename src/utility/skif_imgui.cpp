@@ -918,6 +918,9 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
     0x2600,  0x26FF, // Misc. Characters
     0x2700,  0x27BF, // Dingbats
     0xc2b1,  0xc2b3, // ²
+    0x0400,  0x052F, // Cyrillic + Cyrillic Supplement
+    0x2DE0,  0x2DFF, // Cyrillic Extended-A
+    0xA640,  0xA69F, // Cyrillic Extended-B
     0
   };
   return &ranges [0];
