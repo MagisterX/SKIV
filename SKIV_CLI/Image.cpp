@@ -1223,6 +1223,24 @@ SKIF_RegistrySettings::SKIF_RegistrySettings(void)
 }
 
 static void
+SK_WIC_SetQuality(IPropertyBag2* props)
+{
+  if (props == nullptr)
+    return;
+
+  float q = static_cast<float>(Config::Quality) / 100.0f;
+
+  PROPBAG2 opt = { .pstrName = L"ImageQuality" };
+  VARIANT  var = { VT_R4,0,0,0, {.fltVal = q } };
+
+  PROPBAG2 opt2 = { .pstrName = L"FilterOption" };
+  VARIANT  var2 = { VT_UI1,0,0,0, {.bVal = WICPngFilterAdaptive } };
+
+  props->Write(1, &opt, &var);
+  props->Write(1, &opt2, &var2);
+}
+
+static void
 SK_WIC_SetMaximumQuality(IPropertyBag2* props)
 {
   if (props == nullptr)
@@ -3746,8 +3764,8 @@ SKIV_HDR_ConvertImageToPNG(const DirectX::Image& raw_hdr_img, DirectX::ScratchIm
 HRESULT
 SKIV_Image_SaveToDisk_HDR(const DirectX::Image& image, const wchar_t* wszFileName)
 {
-  SKIF_RegistrySettings& _registry =
-    SKIF_RegistrySettings::GetInstance();
+  /*SKIF_RegistrySettings& _registry =
+    SKIF_RegistrySettings::GetInstance();*/
 
   using namespace DirectX;
 
@@ -4842,7 +4860,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
     DirectX::SaveToWICFile(*pOutputImage, wic_flags, wic_codec,
       wszImplicitFileName, bPrefer10bpcAs48bpp ? &GUID_WICPixelFormat48bppRGB :
       bPrefer10bpcAs32bpp ? &GUID_WICPixelFormat32bppBGR101010 :
-      &GUID_WICPixelFormat24bppBGR, SK_WIC_SetMaximumQuality);
+      &GUID_WICPixelFormat24bppBGR, SK_WIC_SetQuality);
 }
 
 bool
@@ -4875,10 +4893,10 @@ LoadLibraryTextureCLI(std::wstring FilePath, std::wstring OutFilePath)
 
     if (pDevCtx)
     {
-      CComPtr <ID3D11Resource>        pCoverRes;
+      CComPtr <ID3D11Resource>       pCoverRes;
       image.pRawTexSRV->GetResource(&pCoverRes.p);
 
-      DirectX::ScratchImage                                                captured_img;
+      DirectX::ScratchImage                                              captured_img;
       if (SUCCEEDED(DirectX::CaptureTexture(pDevice, pDevCtx, pCoverRes, captured_img)))
       {
         if (image.is_hdr && !Config::SDR)

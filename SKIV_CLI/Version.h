@@ -3,8 +3,8 @@
 
 #define SKIV_CLI_MAJOR 0
 #define SKIV_CLI_MINOR 0
-#define SKIV_CLI_BUILD 3
-#define SKIV_CLI_REV   1
+#define SKIV_CLI_BUILD 4
+#define SKIV_CLI_REV   0
 
 #define _A2(a)     #a
 #define  _A(a)  _A2(a)

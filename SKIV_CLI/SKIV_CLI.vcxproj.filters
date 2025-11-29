@@ -539,7 +539,7 @@
     <ClInclude Include="resource.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
+    <ClInclude Include="Version.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

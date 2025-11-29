@@ -228,7 +228,7 @@ printHelp()
   PrintSubOption(L"hdr", join(allowedExtensions_hdr, L" "));
   PrintSubOption(L"sdr", join(allowedExtensions_sdr, L" "));
   PrintOption(L"--sdr",                L"save as SDR output (default false)");
-  PrintOption(L"-q, --quality <int>",      L"set quality for compression (from 1 to 100) (default 80) (avif, jxr, jxl)");
+  PrintOption(L"-q, --quality <int>",      L"set quality for compression (from 1 to 100) (default 80) (avif, jxr, jxl, jpg, hdp)");
   PrintOption(L"-s, --speed <int>",        L"set speed for compression (from 1 to 10) (default 6) (avif, jxl)");
   PrintOption(L"-b, --hdr_bitdepth <int>", L"set bitdepth for compression");
   PrintSubOption(L"avif",                  L"8, 10, 12 (default 12)");
