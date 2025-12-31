@@ -93,6 +93,9 @@ extern UITab       SKIF_Tab_ChangeTo; // Tab we want to change to
 
 extern std::vector<HANDLE> vWatchHandles[UITab_ALL];
 
+//stub until i find better way to handle it
+inline bool imageHasAlpha = false;
+
 // Generic Utilities
 
 char *

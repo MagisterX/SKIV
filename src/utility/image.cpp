@@ -2074,7 +2074,7 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
       SK_avifRGBImageSetDefaults(&rgb, avif_image);
       rgb.rowBytes = pOutputImage->rowPitch;
       rgb.depth = 8;
-      rgb.ignoreAlpha = false;
+      rgb.ignoreAlpha = !imageHasAlpha;
 
       //maybe there's a better way to handle format
       if (image.format == DXGI_FORMAT_R8G8B8A8_UNORM ||

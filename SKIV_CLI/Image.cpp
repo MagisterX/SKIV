@@ -2702,6 +2702,8 @@ LoadLibraryTexture(image_s& image)
         bool is_hdr_image = (avif_decoder->image->depth > 8) ||
           (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
 
+        imageHasAlpha = avif_decoder->image->alphaPlane ? true : false;
+
         DXGI_FORMAT dxgi_format = is_hdr_image ? DXGI_FORMAT_R16G16B16A16_FLOAT :
                                                  DXGI_FORMAT_B8G8R8A8_UNORM;
 
@@ -2709,7 +2711,7 @@ LoadLibraryTexture(image_s& image)
         rgb.format = is_hdr_image ? AVIF_RGB_FORMAT_RGBA : AVIF_RGB_FORMAT_BGRA;
         //rgb.format = AVIF_RGB_FORMAT_RGBA;
         rgb.maxThreads = std::min(64U, std::min((UINT)si.dwNumberOfProcessors, (UINT)__popcnt64(si.dwActiveProcessorMask)));
-        rgb.ignoreAlpha = avif_decoder->image->alphaPlane ? false : true;
+        rgb.ignoreAlpha = !imageHasAlpha;
         rgb.isFloat = is_hdr_image ? true : false;
 
         SK_avifRGBImageAllocatePixels(&rgb);
@@ -4996,7 +4998,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
       SK_avifRGBImageSetDefaults(&rgb, avif_image);
       rgb.rowBytes = pOutputImage->rowPitch;
       rgb.depth = 8;
-      rgb.ignoreAlpha = false;
+      rgb.ignoreAlpha = !imageHasAlpha;
       //maybe there's a better way to handle format
       if (image.format == DXGI_FORMAT_R8G8B8A8_UNORM ||
           image.format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
@@ -5052,7 +5054,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
     if (avif_image != nullptr) SK_avifImageDestroy(avif_image);
     if (encoder != nullptr) SK_avifEncoderDestroy(encoder);
     
-    SK_avifRGBImageFreePixels(&rgb);
+    //SK_avifRGBImageFreePixels(&rgb);
 
     return (encodeResult == AVIF_RESULT_OK) ? S_OK : E_FAIL;
   }

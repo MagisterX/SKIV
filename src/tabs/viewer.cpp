@@ -991,6 +991,7 @@ LoadLibraryTexture (image_s& image)
   bool succeeded = false;
   bool converted = false;
   bool need_srgb = false;
+  imageHasAlpha = false; 
 
   DWORD pre = SKIF_Util_timeGetTime1 ();
 
@@ -1621,13 +1622,15 @@ LoadLibraryTexture (image_s& image)
         bool is_hdr_image = (avif_decoder->image->depth > 8) ||
           (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
 
+        imageHasAlpha = avif_decoder->image->alphaPlane ? true : false;
+
         DXGI_FORMAT dxgi_format = is_hdr_image ? DXGI_FORMAT_R16G16B16A16_FLOAT :
                                                  DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
         rgb.depth       = is_hdr_image ? 16 : 8;
         rgb.format      = is_hdr_image ? AVIF_RGB_FORMAT_RGBA : AVIF_RGB_FORMAT_BGRA;
         rgb.maxThreads  = std::min (64U, std::min ((UINT)si.dwNumberOfProcessors, (UINT)__popcnt64 (si.dwActiveProcessorMask)));
-        rgb.ignoreAlpha = avif_decoder->image->alphaPlane ? false : true;
+        rgb.ignoreAlpha = !imageHasAlpha;
         rgb.isFloat     = is_hdr_image ? true : false;
 
         SK_avifRGBImageAllocatePixels (                     &rgb);

@@ -87,6 +87,7 @@ enum class PixelFmt
   RGBA
 };
 
+inline bool imageHasAlpha = false;
 
 namespace Config {
   inline BOOL Verbose = false;
