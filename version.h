@@ -29,6 +29,9 @@
 #define SKIV_BUILD 9
 #define SKIV_REV   0
 
+#define MOD_BUILD 4
+#define MOD_REV   0
+
 
 #define _A2(a)     #a
 #define  _A(a)  _A2(a)
@@ -42,7 +45,15 @@
 #define SKIV_VERSION_STR_A    _A(SKIV_MAJOR) "." _A(SKIV_MINOR) "." _A(SKIV_BUILD)
 #endif
 
+#if MOD_REV > 0
+#define MOD_VERSION_STR_A    _A(MOD_BUILD) "." _A(MOD_REV)
+#else
+#define MOD_VERSION_STR_A    _A(MOD_BUILD)
+#endif
+
 #define SKIV_VERSION_STR_W _L(SKIV_VERSION_STR_A)
+
+#define MOD_VERSION_STR_W _L(MOD_VERSION_STR_A)
 
 
 #define SKIV_FILE_VERSION     SKIV_MAJOR,SKIV_MINOR,SKIV_BUILD,SKIV_REV

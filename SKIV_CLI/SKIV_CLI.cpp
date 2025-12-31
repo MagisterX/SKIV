@@ -95,32 +95,95 @@ IsValidOutputFilePath(const std::wstring& path)
   return true;
 }
 
-int
-ExtensionCheck(const std::wstring& path)
+bool
+ExtensionCheckSDR(std::wstring ext)
 {
-  std::filesystem::path p(path);
-  std::wstring ext = p.extension().wstring();
+  for (auto& allowed : allowedExtensions_sdr) {
+    if (StrEq(ext, allowed))
+      return true;
+  }
+  return false;
+}
 
-  if (!ext.empty()) {
+bool
+ExtensionCheckHDR(std::wstring ext)
+{
+  for (auto& allowed : allowedExtensions_hdr) {
+    if (StrEq(ext, allowed))
+      return true;
+  }
+  return false;
+}
+
+int
+ExtensionCheck()
+{
+  //some logic to abort on wrong input
+  //won't handle double format like .png until we decode image though
+  std::filesystem::path p(Config::FilePath);
+  std::wstring extIn = p.extension().wstring();
+
+  if (extIn.empty()) {
+    LOG_E << L"Input File extension was not provided";
+    return -7;
+  }
+
+  bool isInSDR = ExtensionCheckSDR(extIn);
+  bool isInHDR = ExtensionCheckHDR(extIn);
+  if (!isInSDR && !isInHDR)
+  {
+    LOG_E << L"Unsupported input file extension " << extIn;
+    return -7;
+  }
+  p = Config::OutFilePath;
+  std::wstring extOut = p.extension().wstring();
+  bool isOutSDR = ExtensionCheckSDR(extOut);
+  bool isOutHDR = ExtensionCheckHDR(extOut);
+  if (!isOutSDR && !isOutHDR)
+  {
+    LOG_E << L"Unsupported output file extension " << extOut;
+    return -7;
+  }
+
+  if (isInSDR && isInHDR)
+  {
+    //handle after decode
+    return 0;
+  }
+
+  // Input is HDR-only (or considered HDR), it can be converted to HDR,
+  // or to SDR if user requested SDR conversions via Config::SDR.
+  if (isInHDR && !isInSDR) {
     if (Config::SDR) {
-      for (auto& allowed : allowedExtensions_sdr) {
-        if (StrEq(ext, allowed))
-          return 0;
+      if (!isOutSDR) {
+        LOG_I << L"SDR conversion was requested";
+        LOG_E << L"Output file extension " << extOut
+          << L" not supported for SDR";
+        return -7;
       }
     }
     else {
-      for (auto& allowed : allowedExtensions_hdr) {
-        if (StrEq(ext, allowed))
-          return 0;
+      if (!isOutHDR) {
+        LOG_E << L"Output file extension " << extOut
+          << L" not supported for HDR input extension " << extIn;
+        return -7;
       }
     }
+    return 0;
   }
-  else
-  {
-    LOG_E << L"Output File extension was not provided";
-    return -7;
+
+  // isInSDR branch
+  if (isInSDR) {
+    // SDR inputs may only be converted to SDR outputs
+    if (!ExtensionCheckSDR(extOut)) {
+      LOG_E << L"Output file extension " << extOut
+        << L" not supported for SDR input extension " << extIn;
+      return -7;
+    }
+    return 0;
   }
-  LOG_E << L"Unsupported file extension " << ext << L" for " << (Config::SDR ? L"SDR" : L"HDR");
+  // Should never reach here
+  LOG_E << L"Unexpected conversion state";
   return -7;
 }
 
@@ -197,15 +260,9 @@ argCheck()
         << L", got: " << Config::HDR_bitdepth;
       return -5;
     }
-    if (Config::SDR) {
-      LOG_E << L"SDR avif not supported";
-      return -5;
-    }
   }
 
-  return ExtensionCheck(Config::OutFilePath);
-
-  return 0;
+  return ExtensionCheck();
 }
 
 void PrintOption(const std::wstring& flags, const std::wstring& desc) {
@@ -227,12 +284,14 @@ printHelp()
   PrintOption(L"Available output formats:", L" ");
   PrintSubOption(L"hdr", join(allowedExtensions_hdr, L" "));
   PrintSubOption(L"sdr", join(allowedExtensions_sdr, L" "));
-  PrintOption(L"--sdr",                L"save as SDR output (default false)");
+  PrintOption(L"--sdr",                    L"save as SDR output (default false)");
   PrintOption(L"-q, --quality <int>",      L"set quality for compression (from 1 to 100) (default 80) (avif, jxr, jxl, jpg, hdp)");
   PrintOption(L"-s, --speed <int>",        L"set speed for compression (from 1 to 10) (default 6) (avif, jxl)");
   PrintOption(L"-b, --hdr_bitdepth <int>", L"set bitdepth for compression");
   PrintSubOption(L"avif",                  L"8, 10, 12 (default 12)");
   PrintSubOption(L"png",                   L"(from 10 to 16) (default 16)");
+  PrintOption(L"-p, --pix_fmt <string>",   L"set pixel format");
+  PrintSubOption(L"avif",                  L"yuv444, yuv422, yuv420, yuv400 (default yuv444)");
   PrintOption(L"-v, --verbose",            L"enable verbose logging (default false)");
   PrintOption(L"-h, --help",               L"show this message");
   return 1;
@@ -267,11 +326,53 @@ int CheckNextArg(size_t& i, int argc, LPWSTR* argv, int& value, wchar_t* name)
   }
 }
 
+int CheckNextArg(size_t& i, int argc, LPWSTR* argv, PixelFmt& value, wchar_t* name)
+{
+  if (++i < argc) // check that next arg exists
+  {
+    if (StrEq(argv[i], L"yuv444"))
+      value = PixelFmt::YUV444;
+    else if (StrEq(argv[i], L"yuv422"))
+      value = PixelFmt::YUV422;
+    else if (StrEq(argv[i], L"yuv420"))
+      value = PixelFmt::YUV420;
+    else if (StrEq(argv[i], L"yuv400"))
+      value = PixelFmt::YUV400;
+    else if (StrEq(argv[i], L"rgb"))
+      value = PixelFmt::RGB;
+    else if (StrEq(argv[i], L"rgba"))
+      value = PixelFmt::RGBA;
+    else {
+      LOG_E << "Unknown pixel format: " << argv[i];
+      return -3;
+    }
+    return 0;
+  }
+  else {
+    LOG_E << L"Missing value for " << name << L" option.";
+    return -6;
+  }
+}
+
 int
 SKIF_Startup_ProcessAllCmdLineArgs()
 {
     int argc = 0;
     LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+#ifdef _DEBUG
+    // Debug-only command line
+    LPCWSTR debugCmd =
+      L"SKIV_CLI.exe "
+      L"-c "
+      L"\"test.jxr\" "
+      L"\"test.avif\" "
+      L"-p "
+      L"yuv40 "
+      L"--sdr";
+
+    argv = CommandLineToArgvW(debugCmd, &argc);
+#endif
 
     if (argc == 1 || StrEq(argv[1], L"--Help"))
       return printHelp();
@@ -330,6 +431,16 @@ SKIF_Startup_ProcessAllCmdLineArgs()
         continue;
       }
 
+      if (StrEq(argv[i], L"--pix_fmt")
+        || StrEq(argv[i], L"-p"))
+      {
+        int rc = CheckNextArg(i, argc, argv, Config::PixelFormat, L"pixel format");
+        if (rc != 0) {
+          return rc; // propagate error code
+        }
+        continue;
+      }
+
       if (IsValidOutputFilePath(std::wstring(argv[i])))
       {
         if (Config::FilePath.empty()) {
@@ -373,6 +484,7 @@ SKIF_ConvertImageCLI()
       return -4;;
     }
 
+    //processing image
     if (LoadLibraryTextureCLI(Config::FilePath, Config::OutFilePath))
     {
       LOG_I << L"Successfully converted image: " << Config::FilePath;
@@ -395,6 +507,7 @@ int main()
 
 #ifdef _DEBUG
   LOG_W << L"Debug Build .";
+  Config::Debug = true;
 #endif // _DEBUG
 
   std::wstring lmao = GetPathToSK();
@@ -404,8 +517,8 @@ int main()
       return init;
 
 #ifdef _DEBUG
-    //LOG_I << L"Test complete .";
-    //return 101;
+    /*LOG_I << L"Test complete .";
+    return 101;*/
 #endif
 
     // Start work

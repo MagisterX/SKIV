@@ -72,7 +72,19 @@ const std::vector<std::wstring> allowedExtensions_hdr = {
 
 const std::vector<std::wstring> allowedExtensions_sdr = {
         L".png", L".jpg", L".jpeg", L".jxr",
-        L".hdp", L".bmp", L".tiff", L".tif"
+        L".hdp", L".bmp", L".tiff", L".tif",
+        L".avif"
+};
+
+enum class PixelFmt
+{
+  Default,
+  YUV444,
+  YUV422,
+  YUV420,
+  YUV400,
+  RGB,      // future-proof
+  RGBA
 };
 
 
@@ -80,6 +92,7 @@ namespace Config {
   inline BOOL Verbose = false;
   inline BOOL Convert = false;
   inline BOOL SDR = false;
+  inline BOOL Debug = false;
 
   inline std::wstring FilePath = L"";
   inline std::wstring OutFilePath = L"";
@@ -88,7 +101,7 @@ namespace Config {
   inline int Quality = 100;
   inline int Speed = 6;
   inline int YUV_sampling = 444;
-
+  inline PixelFmt PixelFormat = PixelFmt::Default;
 }
 
 class LogStream
@@ -149,18 +162,23 @@ private:
 };
 #define LOG_(severity)   LogStream(severity)
 #define IF_VERBOSE() if (!Config::Verbose) ; else
+#define IF_DEBUG()   if (!Config::Debug)   ; else
 // convenience “stream objects”
 #define LOG_E LOG_(LogStream::Level::Error)
 #define LOG_W LOG_(LogStream::Level::Warning)
 #define LOG_I LOG_(LogStream::Level::Info)
 #define LOG IF_VERBOSE() LOG_(LogStream::Level::Normal)
 
+#define LOG_E_V IF_VERBOSE() LOG_(LogStream::Level::Info)
+#define LOG_W_V IF_VERBOSE() LOG_(LogStream::Level::Info)
+#define LOG_I_V IF_VERBOSE() LOG_(LogStream::Level::Info)
+
 #define LOG_IF(severity, condition)  if (!(condition)) {;} else LOG_( severity)
 //#define PLOG_IF(severity, condition)               PLOG_IF_(PLOG_DEFAULT_INSTANCE_ID, severity, condition)
 
 //conditions, yay
 #define LOG_VERBOSE_IF(condition) IF_VERBOSE()  LOG_IF(LogStream::Level::Normal, condition)
-#define LOG_DEBUG_IF(condition)   IF_VERBOSE()  LOG_IF(LogStream::Level::Normal, condition)
+#define LOG_DEBUG_IF(condition)   IF_DEBUG()    LOG_IF(LogStream::Level::Normal, condition)
 #define LOG_INFO_IF(condition)                  LOG_IF(LogStream::Level::Info, condition)
 #define LOG_WARNING_IF(condition)               LOG_IF(LogStream::Level::Warning, condition)
 #define LOG_ERROR_IF(condition)                 LOG_IF(LogStream::Level::Error, condition)

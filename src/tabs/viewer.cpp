@@ -160,6 +160,7 @@ const std::initializer_list<FileSignature> supported_sdr_encode_formats =
   FileSignature { L"image/bmp",                 { L".bmp"  },          { 0x42, 0x4D } },
   FileSignature { L"image/tiff",                { L".tiff", L".tif" }, { 0x49, 0x49, 0x2A, 0x00 } }, // TIFF: little-endian
   FileSignature { L"image/tiff",                { L".tiff", L".tif" }, { 0x4D, 0x4D, 0x00, 0x2A } }, // TIFF: big-endian
+  FileSignature { L"image/avif",                { L".avif" },          { 0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x61, 0x76, 0x69, 0x66 } },   // ftypavif
 //FileSignature { L"image/vnd-ms.dds",          { L".dds"  },          { 0x44, 0x44, 0x53, 0x20 } },
 //FileSignature { L"image/x-targa",             { L".tga"  },          { 0x00, } }, // TGA has no real unique header identifier, so just use the file extension on those
 };
@@ -1617,13 +1618,17 @@ LoadLibraryTexture (image_s& image)
         SK_avifRGBImageSetDefaults (&rgb, avif_decoder->image);
 
         int bpc = rgb.depth;
+        bool is_hdr_image = (avif_decoder->image->depth > 8) ||
+          (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
 
+        DXGI_FORMAT dxgi_format = is_hdr_image ? DXGI_FORMAT_R16G16B16A16_FLOAT :
+                                                 DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
-        rgb.depth       = 16;
-        rgb.format      = AVIF_RGB_FORMAT_RGBA;
+        rgb.depth       = is_hdr_image ? 16 : 8;
+        rgb.format      = is_hdr_image ? AVIF_RGB_FORMAT_RGBA : AVIF_RGB_FORMAT_BGRA;
         rgb.maxThreads  = std::min (64U, std::min ((UINT)si.dwNumberOfProcessors, (UINT)__popcnt64 (si.dwActiveProcessorMask)));
-        rgb.ignoreAlpha = true;
-        rgb.isFloat     = true;
+        rgb.ignoreAlpha = avif_decoder->image->alphaPlane ? false : true;
+        rgb.isFloat     = is_hdr_image ? true : false;
 
         SK_avifRGBImageAllocatePixels (                     &rgb);
         SK_avifImageYUVToRGB          (avif_decoder->image, &rgb);
@@ -1633,8 +1638,8 @@ LoadLibraryTexture (image_s& image)
 
         DirectX::ScratchImage temp_img;
 
-        if (SUCCEEDED (temp_img.Initialize2D (DXGI_FORMAT_R16G16B16A16_FLOAT, static_cast <size_t> (image.width),
-                                                                              static_cast <size_t> (image.height), 1, 1)))
+        if (SUCCEEDED (temp_img.Initialize2D (dxgi_format, static_cast <size_t> (image.width),
+                                                           static_cast <size_t> (image.height), 1, 1)))
         {
           using namespace DirectX;
 
@@ -1642,12 +1647,12 @@ LoadLibraryTexture (image_s& image)
           image.bpc      = bpc;
 
           // XXX
-          image.light_info.isHDR = true;
-          image.is_hdr           = true;
+          image.light_info.isHDR = is_hdr_image;
+          image.is_hdr           = is_hdr_image;
 
           succeeded      = true;
 
-          meta.format    = DXGI_FORMAT_R16G16B16A16_FLOAT;
+          meta.format    = dxgi_format;
           meta.width     = static_cast <size_t> (image.width);
           meta.height    = static_cast <size_t> (image.height);
           meta.depth     = 1;
@@ -1663,18 +1668,6 @@ LoadLibraryTexture (image_s& image)
 #endif
 
           memcpy (pixels_buffer, rgb.pixels, rgb.rowBytes * rgb.height);
-
-          if (avif_decoder->image->transferCharacteristics != AVIF_TRANSFER_CHARACTERISTICS_PQ)
-          {
-            ImGui::InsertNotification (
-              {
-                ImGuiToastType::Error,
-                15000,
-                "Unsupported AVIF Transfer Characteristics: %d",
-                avif_decoder->image->transferCharacteristics
-              }
-            );
-          }
 
           if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_XYZ)
           {
@@ -1706,31 +1699,34 @@ LoadLibraryTexture (image_s& image)
           }
 
           else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT709 ||
-                   avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB)
+                   avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB ||  
+                   avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED)
           {
-            if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
-                  [&](      XMVECTOR* outPixels,
-                      const XMVECTOR* inPixels,
-                            size_t    width,
-                            size_t    y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-                  
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      XMVECTOR v = inPixels [j];
+            //if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
+            //      [&](      XMVECTOR* outPixels,
+            //          const XMVECTOR* inPixels,
+            //                size_t    width,
+            //                size_t    y)
+            //      {
+            //        UNREFERENCED_PARAMETER(y);
+            //      
+            //        for (size_t j = 0; j < width; ++j)
+            //        {
+            //          XMVECTOR v = inPixels [j];
 
-                      v =
-                        XMVectorScale (
-                          SKIV_Image_PQToLinear (v), 125.0f
-                        );
+            //          v =
+            //            XMVectorScale (
+            //              SKIV_Image_PQToLinear (v), 25.0f
+            //            );
 
-                      outPixels [j] = v;
-                    }
-                  }, img )
-                )
-              )
+            //          outPixels [j] = v;
+            //        }
+            //      }, img )
+            //    )
+            //  )
             {
+              //looks like there's no need for any conversion 
+              std::swap(img, temp_img);
               temp_img.Release ();
             }
           }

@@ -1589,6 +1589,8 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
 HRESULT
 SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileName, const bool force_sRGB)
 {
+  static SKIF_RegistrySettings& _registry =
+    SKIF_RegistrySettings::GetInstance();
   using namespace DirectX;
 
   ScratchImage
@@ -1778,8 +1780,9 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
     bPrefer10bpcAs32bpp = is_hdr;
   }
 
-  // AVIF technically works for SDR... do we want to support it?
-  //  If we do, WIC won't help us, however.
+  else if (StrStrIW(wszExtension, L"avif")) {
+
+  }
 
   else
   {
@@ -2031,6 +2034,106 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
 
     pOutputImage =
       final_sdr.GetImages ();
+  }
+
+  if (StrStrIW(wszExtension, L"avif"))
+  {
+    // Ensure the AVIF library functions are available
+    extern bool isAVIFEncoderAvailable(void);
+    if (!isAVIFEncoderAvailable())
+      return E_NOTIMPL;
+
+    uint32_t width = static_cast <uint32_t> (image.width);
+    uint32_t height = static_cast <uint32_t> (image.height);
+
+    // --- SDR Specific AVIF Settings ---
+    // Use 8-bit depth for standard SDR (as opposed to 10/12-bit for HDR)
+    int bit_depth = 8;
+    // YUV 4:4:4 is highest quality and generally recommended for conversion from RGB
+    avifPixelFormat yuv_format = AVIF_PIXEL_FORMAT_YUV444;
+
+    avifResult rgbToYuvResult = AVIF_RESULT_NO_CONTENT;
+    avifResult addResult = AVIF_RESULT_NO_CONTENT;
+    avifResult encodeResult = AVIF_RESULT_NO_CONTENT;
+
+    avifRWData avifOutput = AVIF_DATA_EMPTY;
+    avifRGBImage rgb = { };
+    avifEncoder* encoder = nullptr;
+
+    // 1. Create the avifImage object
+    avifImage* avif_image = SK_avifImageCreate(width, height, bit_depth, yuv_format);
+
+    if (avif_image != nullptr) {
+      // 2. Set SDR Colorimetry (BT.709 / sRGB)
+      avif_image->colorPrimaries = AVIF_COLOR_PRIMARIES_BT709;
+      avif_image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SRGB;
+      avif_image->matrixCoefficients = AVIF_MATRIX_COEFFICIENTS_BT709;
+      avif_image->yuvRange = AVIF_RANGE_FULL;
+
+      // 3. Setup the avifRGBImage struct from the input DirectX::Image
+      SK_avifRGBImageSetDefaults(&rgb, avif_image);
+      rgb.rowBytes = pOutputImage->rowPitch;
+      rgb.depth = 8;
+      rgb.ignoreAlpha = false;
+
+      //maybe there's a better way to handle format
+      if (image.format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+          image.format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+        rgb.format = AVIF_RGB_FORMAT_RGBA;
+      else
+        rgb.format = AVIF_RGB_FORMAT_BGRA;
+      rgb.pixels = (uint8_t*)pOutputImage->pixels;
+
+      // 4. Convert the input RGB data to YUV
+      rgbToYuvResult = SK_avifImageRGBToYUV(avif_image, &rgb);
+
+      if (rgbToYuvResult == AVIF_RESULT_OK) {
+        // 5. Create and configure the encoder
+        encoder = SK_avifEncoderCreate();
+        if (encoder != nullptr) {
+          SYSTEM_INFO     si = { };
+          GetSystemInfo(&si);
+          // Configure encoder settings here
+          encoder->quality = _registry.avif.quality;
+          encoder->qualityAlpha = _registry.avif.quality;
+          encoder->speed = _registry.avif.speed;
+          encoder->timescale = 1;
+          encoder->minQuantizer = AVIF_QUANTIZER_BEST_QUALITY;
+          encoder->maxQuantizer = AVIF_QUANTIZER_WORST_QUALITY;
+          encoder->codecChoice = AVIF_CODEC_CHOICE_AUTO;
+          encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
+#ifdef _M_X64
+          encoder->maxThreads = std::min(64U, std::min((UINT)si.dwNumberOfProcessors, (UINT)__popcnt64(si.dwActiveProcessorMask)));
+#endif
+          // 6. Add the image and finalize the encoding
+          addResult = SK_avifEncoderAddImage(encoder, avif_image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+          encodeResult = SK_avifEncoderFinish(encoder, &avifOutput);
+        }
+      }
+    }
+
+    // 7. Handle logging and file writing
+    if (rgbToYuvResult != AVIF_RESULT_OK || addResult != AVIF_RESULT_OK || encodeResult != AVIF_RESULT_OK) {
+      // Optional: Add logging for error codes here
+      PLOG_ERROR << "avif conversion failed";
+    }
+
+    if (encodeResult == AVIF_RESULT_OK) {
+      // Write the encoded data to disk
+      FILE* fAVIF = _wfopen(wszImplicitFileName, L"wb");
+      if (fAVIF != nullptr) {
+        fwrite(avifOutput.data, 1, avifOutput.size, fAVIF);
+        fclose(fAVIF);
+      }
+    }
+
+    // 8. Cleanup resources
+    if (avif_image != nullptr) SK_avifImageDestroy(avif_image);
+    if (encoder != nullptr) SK_avifEncoderDestroy(encoder);
+    
+    //SK_avifRGBImageFreePixels(&rgb);
+
+    return (encodeResult == AVIF_RESULT_OK) ? S_OK : E_FAIL;
   }
 
   ///DirectX::TexMetadata              orig_tex_metadata;
@@ -2854,7 +2957,7 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
           avif_image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
           break;
         default:
-          return false;
+          return E_UNEXPECTED;
       }
     
       SK_avifRGBImageSetDefaults (&rgb, avif_image);

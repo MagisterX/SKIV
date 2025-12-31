@@ -1235,6 +1235,13 @@ SKIF_ImGui_InitFonts (float fontSize, bool extendedCharsets)
     for (auto& font : awesome_fonts)
       _UnpackFontIfNeeded ( std::get <0> (font), std::get <1> (font), std::get <2> (font) );
 
+    //fix aligment of some icons like ICON_FA_XMARK
+    ImFontConfig
+      fas_cfg = font_cfg;
+    fas_cfg.MergeMode = true;
+    fas_cfg.GlyphMinAdvanceX = 16.0f;
+    fas_cfg.GlyphOffset = ImVec2(0.0f, 1.0f); // optional
+
     // In January, 2024 various optimization attempts were made to on-demand load Font Awesome characters
     //   as they appeared, but while this shaved down a bit on the initial launch time, it also resulted
     //     in unnecessary ~20ms delays every time a new Font Awesome character appeared on-screen...
@@ -1242,7 +1249,7 @@ SKIF_ImGui_InitFonts (float fontSize, bool extendedCharsets)
 
     // FA Regular is basically useless as it only has 163 icons, so we don't bother using it
     // FA Solid has 1390 icons in comparison
-        SKIF_ImGui_LoadFont (fontDir/FONT_ICON_FILE_NAME_FAS, fontSizeFA, SK_ImGui_GetGlyphRangesFontAwesome(), &font_cfg);
+        SKIF_ImGui_LoadFont (fontDir/FONT_ICON_FILE_NAME_FAS, fontSizeFA, SK_ImGui_GetGlyphRangesFontAwesome(), &fas_cfg);
     // FA Brands
     SKIF_ImGui_LoadFont (fontDir/FONT_ICON_FILE_NAME_FAB, fontSizeFA, SK_ImGui_GetGlyphRangesFontAwesomeBrands(), &font_cfg);
 

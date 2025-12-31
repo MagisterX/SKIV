@@ -1979,7 +1979,7 @@ bool isUHDRCodecAvailable(void)
 
           if (hModUHDR != nullptr)
           {
-            LOG_I << "Loaded Ultra HDR from: " << path_to_sk;
+            LOG_I_V << "Loaded Ultra HDR from: " << path_to_sk;
           }
         }
       }
@@ -1989,7 +1989,7 @@ bool isUHDRCodecAvailable(void)
         hModUHDR = LoadLibraryW(L"uhdr.dll");
         if (hModUHDR != nullptr)
         {
-          LOG_I << "Loaded Ultra HDR from default DLL search path";
+          LOG_I_V << "Loaded Ultra HDR from default DLL search path";
         }
       }
 
@@ -2155,7 +2155,7 @@ LoadLibraryTexture(image_s& image)
         //   they can all be SDR or HDR.
         if (type.mime_type == L"image/vnd.radiance" || // .hdr
           type.mime_type == L"image/vnd.ms-photo" || // .jxr
-          type.mime_type == L"image/avif" || // .avif
+          //type.mime_type == L"image/avif" || // .avif
           type.mime_type == L"image/x-exr")          // .exr
         {
           image.is_hdr = true;
@@ -2297,13 +2297,13 @@ LoadLibraryTexture(image_s& image)
     if (pixels == NULL && SKIV_STBI_CICP.primaries == 0)
     {
       decoder = ImageDecoder_WIC;
-      LOG_E << "Using WIC decoder due to STB failing with: " << stbi_failure_reason();
+      LOG_E_V << "Using WIC decoder due to STB failing with: " << stbi_failure_reason();
     }
 
     else if (pixels != nullptr && SKIV_STBI_srgb && !cicp && !SKIV_STBI_ICCP.iCCP)
     {
       decoder = ImageDecoder_WIC;
-      LOG_E << "Using WIC decoder due to STB incorrectly handling sRGB";
+      LOG_E_V << "Using WIC decoder due to STB incorrectly handling sRGB";
     }
 #endif
 
@@ -2699,13 +2699,18 @@ LoadLibraryTexture(image_s& image)
         SK_avifRGBImageSetDefaults(&rgb, avif_decoder->image);
 
         int bpc = rgb.depth;
+        bool is_hdr_image = (avif_decoder->image->depth > 8) ||
+          (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
 
+        DXGI_FORMAT dxgi_format = is_hdr_image ? DXGI_FORMAT_R16G16B16A16_FLOAT :
+                                                 DXGI_FORMAT_B8G8R8A8_UNORM;
 
-        rgb.depth = 16;
-        rgb.format = AVIF_RGB_FORMAT_RGBA;
+        rgb.depth = is_hdr_image ? 16 : 8;
+        rgb.format = is_hdr_image ? AVIF_RGB_FORMAT_RGBA : AVIF_RGB_FORMAT_BGRA;
+        //rgb.format = AVIF_RGB_FORMAT_RGBA;
         rgb.maxThreads = std::min(64U, std::min((UINT)si.dwNumberOfProcessors, (UINT)__popcnt64(si.dwActiveProcessorMask)));
-        rgb.ignoreAlpha = true;
-        rgb.isFloat = true;
+        rgb.ignoreAlpha = avif_decoder->image->alphaPlane ? false : true;
+        rgb.isFloat = is_hdr_image ? true : false;
 
         SK_avifRGBImageAllocatePixels(&rgb);
         SK_avifImageYUVToRGB(avif_decoder->image, &rgb);
@@ -2715,7 +2720,7 @@ LoadLibraryTexture(image_s& image)
 
         DirectX::ScratchImage temp_img;
 
-        if (SUCCEEDED(temp_img.Initialize2D(DXGI_FORMAT_R16G16B16A16_FLOAT, static_cast <size_t> (image.width),
+        if (SUCCEEDED(temp_img.Initialize2D(dxgi_format, static_cast <size_t> (image.width),
           static_cast <size_t> (image.height), 1, 1)))
         {
           using namespace DirectX;
@@ -2724,12 +2729,12 @@ LoadLibraryTexture(image_s& image)
           image.bpc = bpc;
 
           // XXX
-          image.light_info.isHDR = true;
-          image.is_hdr = true;
+          image.light_info.isHDR = is_hdr_image;
+          image.is_hdr = is_hdr_image;
 
           succeeded = true;
 
-          meta.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+          meta.format = dxgi_format;
           meta.width = static_cast <size_t> (image.width);
           meta.height = static_cast <size_t> (image.height);
           meta.depth = 1;
@@ -2746,28 +2751,99 @@ LoadLibraryTexture(image_s& image)
 
           memcpy(pixels_buffer, rgb.pixels, rgb.rowBytes * rgb.height);
 
-          if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
-            [&](XMVECTOR* outPixels,
-              const XMVECTOR* inPixels,
-              size_t    width,
-              size_t    y)
-            {
-              UNREFERENCED_PARAMETER(y);
-
-              for (size_t j = 0; j < width; ++j)
-              {
-                XMVECTOR v = inPixels[j];
-
-                v =
-                  XMVector3Transform(SKIV_Image_PQToLinear(v), c_Bt2100toscRGB);
-
-                outPixels[j] = v;
-              }
-            }, img)
-          )
-            )
+          if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_XYZ)
           {
-            temp_img.Release();
+            if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
+              [&](XMVECTOR* outPixels,
+                const XMVECTOR* inPixels,
+                size_t    width,
+                size_t    y)
+              {
+                UNREFERENCED_PARAMETER(y);
+
+                for (size_t j = 0; j < width; ++j)
+                {
+                  XMVECTOR v = inPixels[j];
+
+                  v =
+                    XMVectorScale(
+                      XMVector3Transform(SKIV_Image_PQToLinear(v), c_fromXYZto709), 125.0f
+                    );
+
+                  outPixels[j] = v;
+                }
+              }, img)
+            )
+              )
+            {
+              temp_img.Release();
+            }
+          }
+
+          else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT709 ||
+            avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB ||
+            avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED)
+          {
+            /*if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
+                  [&](      XMVECTOR* outPixels,
+                      const XMVECTOR* inPixels,
+                            size_t    width,
+                            size_t    y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR v = inPixels [j];
+
+                      v =
+                        XMVectorScale (
+                          SKIV_Image_PQToLinear (v), 25.0f
+                        );
+
+                      outPixels [j] = v;
+                    }
+                  }, img )
+                )
+              )*/
+            {
+              //looks like there's no need for any conversion 
+              std::swap(img, temp_img);
+              temp_img.Release();
+            }
+          }
+
+          else
+          {
+            if (avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2100 &&
+              avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2020)
+            {
+              LOG_W << "Unsupported AVIF Color Primaries: %d", avif_decoder->image->colorPrimaries;
+            }
+
+            if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
+              [&](XMVECTOR* outPixels,
+                const XMVECTOR* inPixels,
+                size_t    width,
+                size_t    y)
+              {
+                UNREFERENCED_PARAMETER(y);
+
+                for (size_t j = 0; j < width; ++j)
+                {
+                  XMVECTOR v = inPixels[j];
+
+                  v =
+                    XMVector3Transform(SKIV_Image_PQToLinear(v), c_Bt2100toscRGB);
+
+                  outPixels[j] = v;
+                }
+              }, img)
+            )
+              )
+            {
+              temp_img.Release();
+            }
           }
         }
 
@@ -3827,7 +3903,7 @@ SKIV_Image_SaveToDisk_HDR(const DirectX::Image& image, const wchar_t* wszFileNam
 
   else if (StrStrIW(wszExtension, L"png"))
   {
-    DirectX::ScratchImage                  png_img;
+    DirectX::ScratchImage                 png_img;
     if (SKIV_HDR_ConvertImageToPNG(image, png_img))
     {
       if (SKIV_HDR_SavePNGToDisk(wszImplicitFileName, png_img.GetImages(), &image, nullptr, true))
@@ -3839,8 +3915,10 @@ SKIV_Image_SaveToDisk_HDR(const DirectX::Image& image, const wchar_t* wszFileNam
 
   else if (StrStrIW(wszExtension, L"jxl"))
   {
-    if (!isJXLDecoderAvailable())
+    if (!isJXLDecoderAvailable()) {
+      LOG_E << "JXL decoder not available";
       return E_NOTIMPL;
+    }
 
     static HMODULE hModJXL;
     hModJXL = LoadLibraryW(L"jxl.dll");
@@ -4072,23 +4150,24 @@ SKIV_Image_SaveToDisk_HDR(const DirectX::Image& image, const wchar_t* wszFileNam
     avifPixelFormat yuv_format = AVIF_PIXEL_FORMAT_YUV444;
 
     const int yuv_subsampling = 444;
-    switch (yuv_subsampling)
+    switch (Config::PixelFormat)
     {
-    default:
-      //config.screenshots.avif.yuv_subsampling = 444; // Write a valid value to INI
-      [[fallthrough]];
-    case 444:
+    case PixelFmt::Default:
+    case PixelFmt::YUV444:
       yuv_format = AVIF_PIXEL_FORMAT_YUV444;
       break;
-    case 422:
+    case PixelFmt::YUV422:
       yuv_format = AVIF_PIXEL_FORMAT_YUV422;
       break;
-    case 420:
+    case PixelFmt::YUV420:
       yuv_format = AVIF_PIXEL_FORMAT_YUV420;
       break;
-    case 400: // lol
+    case PixelFmt::YUV400:
       yuv_format = AVIF_PIXEL_FORMAT_YUV400;
       break;
+    default:
+      LOG_E << "Unsupported pixel format for avif.";
+      return E_FAIL;
     }
 
     if (image.format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
@@ -4416,7 +4495,7 @@ SKIV_Image_SaveToDisk_HDR(const DirectX::Image& image, const wchar_t* wszFileNam
   else
   {
     // What the hell is this?
-    LOG_E << "Unknown encoder format for file extension '" << wszExtension << "'";
+    LOG_E << "File extension '" << wszExtension << "' not supported for HDR encoding.";
     return E_UNEXPECTED;
   }
 
@@ -4615,13 +4694,15 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
   {
     wic_codec = GetWICCodec(WIC_CODEC_WMP);
     bPrefer10bpcAs32bpp = is_hdr;
-  }
+    }
+  else if (StrStrIW(wszExtension, L"avif")) {
 
-  // AVIF technically works for SDR... do we want to support it?
-  //  If we do, WIC won't help us, however.
+  }
 
   else
   {
+    LOG_E << L"Output file extension " << wszExtension
+      << L" not supported for SDR";
     return E_UNEXPECTED;
   }
 
@@ -4856,6 +4937,126 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
       final_sdr.GetImages();
   }
 
+  // AVIF technically works for SDR... do we want to support it?
+  //  If we do, WIC won't help us, however.
+  if (StrStrIW(wszExtension, L"avif"))
+  {
+    // Ensure the AVIF library functions are available
+    extern bool isAVIFEncoderAvailable(void);
+    if (!isAVIFEncoderAvailable())
+      return E_NOTIMPL;
+
+    uint32_t width = static_cast <uint32_t> (image.width);
+    uint32_t height = static_cast <uint32_t> (image.height);
+
+    // --- SDR Specific AVIF Settings ---
+    // Use 8-bit depth for standard SDR (as opposed to 10/12-bit for HDR)
+    int bit_depth = 8;
+    // YUV 4:4:4 is highest quality and generally recommended for conversion from RGB
+    avifPixelFormat yuv_format = AVIF_PIXEL_FORMAT_YUV444;
+    switch (Config::PixelFormat)
+    {
+    case PixelFmt::Default:
+    case PixelFmt::YUV444:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV444;
+      break;
+    case PixelFmt::YUV422:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV422;
+      break;
+    case PixelFmt::YUV420:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV420;
+      break;
+    case PixelFmt::YUV400:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV400;
+      break;
+    default:
+      LOG_E << "Unsupported pixel format for avif.";
+      return E_FAIL;
+    }
+
+    avifResult rgbToYuvResult = AVIF_RESULT_NO_CONTENT;
+    avifResult addResult = AVIF_RESULT_NO_CONTENT;
+    avifResult encodeResult = AVIF_RESULT_NO_CONTENT;
+
+    avifRWData avifOutput = AVIF_DATA_EMPTY;
+    avifRGBImage rgb = { };
+    avifEncoder* encoder = nullptr;
+
+    // 1. Create the avifImage object
+    avifImage* avif_image = SK_avifImageCreate(width, height, bit_depth, yuv_format);
+
+    if (avif_image != nullptr) {
+      // 2. Set SDR Colorimetry (BT.709 / sRGB)
+      avif_image->colorPrimaries = AVIF_COLOR_PRIMARIES_BT709;
+      avif_image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SRGB;
+      avif_image->matrixCoefficients = AVIF_MATRIX_COEFFICIENTS_BT709;
+      avif_image->yuvRange = AVIF_RANGE_FULL;
+
+      // 3. Setup the avifRGBImage struct from the input DirectX::Image
+      SK_avifRGBImageSetDefaults(&rgb, avif_image);
+      rgb.rowBytes = pOutputImage->rowPitch;
+      rgb.depth = 8;
+      rgb.ignoreAlpha = false;
+      //maybe there's a better way to handle format
+      if (image.format == DXGI_FORMAT_R8G8B8A8_UNORM ||
+          image.format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+        rgb.format = AVIF_RGB_FORMAT_RGBA;
+      else
+        rgb.format = AVIF_RGB_FORMAT_BGRA;
+      rgb.pixels = (uint8_t*)pOutputImage->pixels;
+
+      // 4. Convert the input RGB data to YUV
+      rgbToYuvResult = SK_avifImageRGBToYUV(avif_image, &rgb);
+
+      if (rgbToYuvResult == AVIF_RESULT_OK) {
+        // 5. Create and configure the encoder
+        encoder = SK_avifEncoderCreate();
+        if (encoder != nullptr) {
+          SYSTEM_INFO     si = { };
+          GetSystemInfo(&si);
+
+          encoder->quality = Config::Quality;
+          encoder->qualityAlpha = Config::Quality;
+          encoder->speed = Config::Speed;
+          encoder->timescale = 1;
+          encoder->minQuantizer = AVIF_QUANTIZER_BEST_QUALITY;
+          encoder->maxQuantizer = AVIF_QUANTIZER_WORST_QUALITY;
+          encoder->codecChoice = AVIF_CODEC_CHOICE_AUTO;
+          encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
+#ifdef _M_X64
+          encoder->maxThreads = std::min(64U, std::min((UINT)si.dwNumberOfProcessors, (UINT)__popcnt64(si.dwActiveProcessorMask)));
+#endif
+          // 6. Add the image and finalize the encoding
+          addResult = SK_avifEncoderAddImage(encoder, avif_image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+          encodeResult = SK_avifEncoderFinish(encoder, &avifOutput);
+        }
+      }
+    }
+
+    // 7. Handle logging and file writing
+    if (rgbToYuvResult != AVIF_RESULT_OK || addResult != AVIF_RESULT_OK || encodeResult != AVIF_RESULT_OK) {
+      // Optional: Add logging for error codes here
+      LOG_E << "avif conversion failed";
+    }
+
+    if (encodeResult == AVIF_RESULT_OK) {
+      // Write the encoded data to disk
+      FILE* fAVIF = _wfopen(wszImplicitFileName, L"wb");
+      if (fAVIF != nullptr) {
+        fwrite(avifOutput.data, 1, avifOutput.size, fAVIF);
+        fclose(fAVIF);
+      }
+    }
+
+    // 8. Cleanup resources
+    if (avif_image != nullptr) SK_avifImageDestroy(avif_image);
+    if (encoder != nullptr) SK_avifEncoderDestroy(encoder);
+    
+    SK_avifRGBImageFreePixels(&rgb);
+
+    return (encodeResult == AVIF_RESULT_OK) ? S_OK : E_FAIL;
+  }
+
   return
     DirectX::SaveToWICFile(*pOutputImage, wic_flags, wic_codec,
       wszImplicitFileName, bPrefer10bpcAs48bpp ? &GUID_WICPixelFormat48bppRGB :
@@ -4899,6 +5100,7 @@ LoadLibraryTextureCLI(std::wstring FilePath, std::wstring OutFilePath)
       DirectX::ScratchImage                                              captured_img;
       if (SUCCEEDED(DirectX::CaptureTexture(pDevice, pDevCtx, pCoverRes, captured_img)))
       {
+        LOG_I << (image.is_hdr ? L"HDR" : L"SDR") << L" image detected.";
         if (image.is_hdr && !Config::SDR)
           hr = SKIV_Image_SaveToDisk_HDR(*captured_img.GetImages(), OutFilePath.data());
         else
