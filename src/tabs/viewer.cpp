@@ -1618,7 +1618,7 @@ LoadLibraryTexture (image_s& image)
         avifRGBImage                 rgb;
         SK_avifRGBImageSetDefaults (&rgb, avif_decoder->image);
 
-        int bpc = rgb.depth;
+        int bpc = rgb.depth; 
         bool is_hdr_image = (avif_decoder->image->depth > 8) ||
           (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
 
@@ -1642,7 +1642,7 @@ LoadLibraryTexture (image_s& image)
         DirectX::ScratchImage temp_img;
 
         if (SUCCEEDED (temp_img.Initialize2D (dxgi_format, static_cast <size_t> (image.width),
-                                                           static_cast <size_t> (image.height), 1, 1)))
+          static_cast <size_t> (image.height), 1, 1)))
         {
           using namespace DirectX;
 
@@ -1672,29 +1672,42 @@ LoadLibraryTexture (image_s& image)
 
           memcpy (pixels_buffer, rgb.pixels, rgb.rowBytes * rgb.height);
 
+          if (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_UNSPECIFIED)
+          {
+            ImGui::InsertNotification(
+              {
+                ImGuiToastType::Error,
+                15000,
+                "Unspecified AVIF Transfer Characteristics: %d",
+                avif_decoder->image->transferCharacteristics
+              }
+            );
+          }
+
+
           if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_XYZ)
           {
             if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
                   [&](      XMVECTOR* outPixels,
-                      const XMVECTOR* inPixels,
-                            size_t    width,
-                            size_t    y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-                  
-                    for (size_t j = 0; j < width; ++j)
-                    {
+                const XMVECTOR* inPixels,
+                size_t    width,
+                size_t    y)
+              {
+                UNREFERENCED_PARAMETER(y);
+
+                for (size_t j = 0; j < width; ++j)
+                {
                       XMVECTOR v = inPixels [j];
 
-                      v =
+                  v =
                         XMVectorScale (
                           XMVector3Transform (SKIV_Image_PQToLinear (v), c_fromXYZto709), 125.0f
-                        );
+                    );
 
                       outPixels [j] = v;
-                    }
+                }
                   }, img )
-                )
+            )
               )
             {
               temp_img.Release ();
@@ -1702,42 +1715,50 @@ LoadLibraryTexture (image_s& image)
           }
 
           else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT709 ||
-                   avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB ||  
-                   avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED)
+                   avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB)
           {
-            //if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
-            //      [&](      XMVECTOR* outPixels,
-            //          const XMVECTOR* inPixels,
-            //                size_t    width,
-            //                size_t    y)
-            //      {
-            //        UNREFERENCED_PARAMETER(y);
-            //      
-            //        for (size_t j = 0; j < width; ++j)
-            //        {
-            //          XMVECTOR v = inPixels [j];
+            /*if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
+                  [&](      XMVECTOR* outPixels,
+                      const XMVECTOR* inPixels,
+                            size_t    width,
+                            size_t    y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
 
-            //          v =
-            //            XMVectorScale (
-            //              SKIV_Image_PQToLinear (v), 25.0f
-            //            );
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR v = inPixels [j];
 
-            //          outPixels [j] = v;
-            //        }
-            //      }, img )
-            //    )
-            //  )
+                      v =
+                        XMVectorScale (
+                          SKIV_Image_PQToLinear (v), 25.0f
+                        );
+
+                      outPixels [j] = v;
+                    }
+                  }, img )
+                )
+              )*/
             {
               //looks like there's no need for any conversion 
               std::swap(img, temp_img);
               temp_img.Release ();
             }
           }
-
           else
           {
-            if (avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2100 &&
-                avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2020)
+            if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED) {
+              ImGui::InsertNotification(
+                {
+                  ImGuiToastType::Error,
+                  15000,
+                  "Unspecified AVIF Color Primaries: %d",
+                  avif_decoder->image->transferCharacteristics
+                }
+              );
+            }
+            else if (avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2100 &&
+              avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2020)
             {
               ImGui::InsertNotification (
                 {
@@ -1748,26 +1769,31 @@ LoadLibraryTexture (image_s& image)
                 }
               );
             }
+            //HDR 8-bpc is not handled correctly  
+            if (bpc == 8) {
+              //for now treat it as SDR, but that's incorrect measure in long run
+              std::swap(img, temp_img);
+              temp_img.Release();
+            }
+            else if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
+              [&](XMVECTOR* outPixels,
+                const XMVECTOR* inPixels,
+                size_t    width,
+                size_t    y)
+              {
+                UNREFERENCED_PARAMETER(y);
 
-            if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
-                  [&](      XMVECTOR* outPixels,
-                      const XMVECTOR* inPixels,
-                            size_t    width,
-                            size_t    y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-                  
-                    for (size_t j = 0; j < width; ++j)
-                    {
+                for (size_t j = 0; j < width; ++j)
+                {
                       XMVECTOR v = inPixels [j];
 
-                      v =
+                  v =
                         XMVector3Transform (SKIV_Image_PQToLinear (v), c_Bt2100toscRGB);
 
                       outPixels [j] = v;
-                    }
+                }
                   }, img )
-                )
+            )
               )
             {
               temp_img.Release ();

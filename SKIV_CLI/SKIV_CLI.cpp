@@ -276,7 +276,7 @@ void PrintSubOption(const std::wstring& flags, const std::wstring& desc) {
 int
 printHelp()
 {
-  std::wcout << L"SKIV_CLI version " << SKIV_CLI_VERSION_STR_W<<L" based on SKIV " << SKIV_VERSION_STR_W << L"\n";
+  LOG_I << L"SKIV_CLI version " << SKIV_CLI_VERSION_STR_W << L" based on SKIV " << SKIV_VERSION_STR_W << " mod " << MOD_VERSION_STR_A << L"\n";
   std::wcout << L"Usage: SKIV_CLI [OPTIONS] <input_file> <output_file>\n\n";
   std::wcout << std::left; // left-align everything
   std::wcout << L"Options:\n";

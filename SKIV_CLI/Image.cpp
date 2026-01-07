@@ -2753,6 +2753,11 @@ LoadLibraryTexture(image_s& image)
 
           memcpy(pixels_buffer, rgb.pixels, rgb.rowBytes * rgb.height);
 
+          if (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_UNSPECIFIED)
+          {
+            LOG_W << "Unspecified AVIF Transfer Characteristics: %d", avif_decoder->image->transferCharacteristics;
+          }
+
           if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_XYZ)
           {
             if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
@@ -2783,8 +2788,7 @@ LoadLibraryTexture(image_s& image)
           }
 
           else if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT709 ||
-            avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB ||
-            avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED)
+            avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_SRGB)
           {
             /*if ( SUCCEEDED ( TransformImage (*temp_img.GetImages (),
                   [&](      XMVECTOR* outPixels,
@@ -2814,16 +2818,23 @@ LoadLibraryTexture(image_s& image)
               temp_img.Release();
             }
           }
-
           else
           {
-            if (avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2100 &&
-              avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2020)
+            if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED) {
+              LOG_W << "Unspecified AVIF Color Primaries: %d", avif_decoder->image->transferCharacteristics;
+            }
+            else if (avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2100 &&
+                     avif_decoder->image->colorPrimaries != AVIF_COLOR_PRIMARIES_BT2020)
             {
               LOG_W << "Unsupported AVIF Color Primaries: %d", avif_decoder->image->colorPrimaries;
             }
-
-            if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
+            //HDR 8-bpc is not handled correctly  
+            if (bpc == 8) {
+              //for now treat it as SDR, but that's incorrect measure in long run
+              std::swap(img, temp_img);
+              temp_img.Release();
+            }
+            else if (SUCCEEDED(TransformImage(*temp_img.GetImages(),
               [&](XMVECTOR* outPixels,
                 const XMVECTOR* inPixels,
                 size_t    width,
