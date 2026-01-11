@@ -1622,6 +1622,25 @@ LoadLibraryTexture (image_s& image)
         bool is_hdr_image = (avif_decoder->image->depth > 8) ||
           (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
 
+        if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED)
+        {
+        //attempt to parse missing primaries from icc
+          if (avif_decoder->image->icc.data && avif_decoder->image->icc.size > 0) {
+            ICCPrimaries p = ParseICCPrimaries(avif_decoder->image->icc.data, avif_decoder->image->icc.size);
+            if (p.valid) {
+              avifColorPrimaries prim = MatchICCPrimariesToAVIF(p);
+
+              if (prim != AVIF_COLOR_PRIMARIES_UNSPECIFIED) {
+                avif_decoder->image->colorPrimaries = prim;
+                if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT2100 ||
+                  avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT2020) {
+                  is_hdr_image = true;
+                }
+              }
+            }
+          }
+        }
+
         imageHasAlpha = avif_decoder->image->alphaPlane ? true : false;
 
         DXGI_FORMAT dxgi_format = is_hdr_image ? DXGI_FORMAT_R16G16B16A16_FLOAT :
@@ -1770,7 +1789,7 @@ LoadLibraryTexture (image_s& image)
               );
             }
             //HDR 8-bpc is not handled correctly  
-            if (bpc == 8) {
+            if (bpc == 8 && avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED) {
               //for now treat it as SDR, but that's incorrect measure in long run
               std::swap(img, temp_img);
               temp_img.Release();

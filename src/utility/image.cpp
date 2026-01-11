@@ -151,6 +151,43 @@ SKIV_Image_ICtCptoRec709 (DirectX::XMVECTOR N)
     XMVector3Transform (ret, c_fromXYZto709);
 };
 
+#pragma region icc
+bool
+XYZtoXY(float X, float Y, float Z, float& x, float& y)
+{
+  float sum = X + Y + Z;
+  if (sum <= 0.0f)
+    return false;
+
+  x = X / sum;
+  y = Y / sum;
+  return true;
+}
+
+float
+s15Fixed16ToFloat(uint32_t v)
+{
+  int32_t s = (int32_t)v;
+  return (float)s / 65536.0f;
+}
+
+uint32_t
+ReadBE32(const uint8_t* p)
+{
+  return (uint32_t(p[0]) << 24) |
+    (uint32_t(p[1]) << 16) |
+    (uint32_t(p[2]) << 8) |
+    uint32_t(p[3]);
+}
+
+static float iccDist2(float x1, float y1, float x2, float y2)
+{
+  float dx = x1 - x2;
+  float dy = y1 - y2;
+  return dx * dx + dy * dy;
+}
+#pragma endregion 
+
 static uint32_t
 png_crc32 (const void* typeless_data, size_t offset, size_t len, uint32_t crc)
 {
@@ -1585,6 +1622,83 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
 
   return S_OK;
 }
+
+#pragma region icc
+ICCPrimaries
+ParseICCPrimaries(const uint8_t* data, size_t size)
+{
+  ICCPrimaries out;
+
+  if (!data || size < 132)
+    return out;
+
+  uint32_t tagCount = ReadBE32(data + 128);
+  const uint8_t* tags = data + 132;
+
+  auto readXYZTag = [&](uint32_t sig, Chromaticity& dst) -> bool {
+    for (uint32_t i = 0; i < tagCount; i++) {
+      const uint8_t* t = tags + i * 12;
+      if (ReadBE32(t) == sig) {
+        uint32_t offset = ReadBE32(t + 4);
+        if (offset + 20 > size)
+          return false;
+
+        const uint8_t* p = data + offset;
+        if (ReadBE32(p) != 0x58595A20) // 'XYZ '
+          return false;
+
+        float X = s15Fixed16ToFloat(ReadBE32(p + 8));
+        float Y = s15Fixed16ToFloat(ReadBE32(p + 12));
+        float Z = s15Fixed16ToFloat(ReadBE32(p + 16));
+
+        return XYZtoXY(X, Y, Z, dst.x, dst.y);
+      }
+    }
+    return false;
+    };
+
+  bool ok =
+    readXYZTag(0x7258595A, out.r) && // 'rXYZ'
+    readXYZTag(0x6758595A, out.g) && // 'gXYZ'
+    readXYZTag(0x6258595A, out.b) && // 'bXYZ'
+    readXYZTag(0x77747074, out.w);   // 'wtpt'
+
+  out.valid = ok;
+  return out;
+}
+
+avifColorPrimaries
+MatchICCPrimariesToAVIF(const ICCPrimaries& icc)
+{
+  if (!icc.valid)
+    return AVIF_COLOR_PRIMARIES_UNSPECIFIED;
+
+  float bestScore = FLT_MAX;
+  avifColorPrimaries best = AVIF_COLOR_PRIMARIES_UNSPECIFIED;
+
+  for (const auto& ref : iccKnownPrimaries) {
+    float score = 0.0f;
+
+    score += iccDist2(icc.r.x, icc.r.y, ref.rx, ref.ry);
+    score += iccDist2(icc.g.x, icc.g.y, ref.gx, ref.gy);
+    score += iccDist2(icc.b.x, icc.b.y, ref.bx, ref.by);
+    score += iccDist2(icc.w.x, icc.w.y, ref.wx, ref.wy);
+
+    if (score < bestScore) {
+      bestScore = score;
+      best = ref.avif;
+    }
+  }
+
+  // Tolerance: tuned to avoid false positives
+  constexpr float kMaxError = 0.0005f;
+
+  //if (bestScore > kMaxError)
+    //return AVIF_COLOR_PRIMARIES_UNSPECIFIED;
+
+  return best;
+}
+#pragma endregion
 
 HRESULT
 SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileName, const bool force_sRGB)

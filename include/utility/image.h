@@ -204,6 +204,60 @@ extern avifRGBImageSetDefaults_pfn    SK_avifRGBImageSetDefaults;
 extern avifRGBImageAllocatePixels_pfn SK_avifRGBImageAllocatePixels;
 extern avifRGBImageFreePixels_pfn     SK_avifRGBImageFreePixels;
 
+//ICC
+struct Chromaticity {
+  float x, y;
+};
+
+struct ICCPrimaries {
+  Chromaticity r, g, b, w;
+  bool valid = false;
+};
+
+struct PrimariesRef {
+  avifColorPrimaries avif;
+  const char* name;
+  float rx, ry;
+  float gx, gy;
+  float bx, by;
+  float wx, wy;
+};
+
+static const PrimariesRef iccKnownPrimaries[] = {
+    {
+        AVIF_COLOR_PRIMARIES_BT709, "BT.709 / sRGB",
+        0.6400f, 0.3300f,
+        0.3000f, 0.6000f,
+        0.1500f, 0.0600f,
+        0.3127f, 0.3290f  // D65
+    },
+    {
+        AVIF_COLOR_PRIMARIES_BT2020, "BT.2020",
+        0.7080f, 0.2920f,
+        0.1700f, 0.7970f,
+        0.1310f, 0.0460f,
+        0.3127f, 0.3290f
+    },
+    {
+        AVIF_COLOR_PRIMARIES_SMPTE432, "Display P3",
+        0.6800f, 0.3200f,
+        0.2650f, 0.6900f,
+        0.1500f, 0.0600f,
+        0.3127f, 0.3290f
+    },
+    {
+        AVIF_COLOR_PRIMARIES_XYZ, "CIE XYZ (D65)",
+        1.0000f, 0.0000f,   // R
+        0.0000f, 1.0000f,   // G
+        0.0000f, 0.0000f,   // B
+        0.3127f, 0.3290f    // White (D65)
+    },
+};
+
+bool               XYZtoXY                  (float X, float Y, float Z, float& x, float& y);
+ICCPrimaries       ParseICCPrimaries        (const uint8_t* data, size_t size);
+avifColorPrimaries MatchICCPrimariesToAVIF  (const ICCPrimaries& icc);
+
 // Structs
 
 struct skiv_image_desktop_s {

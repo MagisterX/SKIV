@@ -186,6 +186,43 @@ struct image_s {
 float        image_s::zoom = 1.0f;
 ImageScaling image_s::scaling = ImageScaling_Auto;
 
+#pragma region icc
+bool
+XYZtoXY(float X, float Y, float Z, float& x, float& y)
+{
+  float sum = X + Y + Z;
+  if (sum <= 0.0f)
+    return false;
+
+  x = X / sum;
+  y = Y / sum;
+  return true;
+}
+
+float
+s15Fixed16ToFloat(uint32_t v)
+{
+  int32_t s = (int32_t)v;
+  return (float)s / 65536.0f;
+}
+
+uint32_t
+ReadBE32(const uint8_t* p)
+{
+  return (uint32_t(p[0]) << 24) |
+    (uint32_t(p[1]) << 16) |
+    (uint32_t(p[2]) << 8) |
+    uint32_t(p[3]);
+}
+
+static float iccDist2(float x1, float y1, float x2, float y2)
+{
+  float dx = x1 - x2;
+  float dy = y1 - y2;
+  return dx * dx + dy * dy;
+}
+#pragma endregion 
+
 float
 image_s::gamut_info_s::pixel_samples_s::getPercentRec709(void) const
 {
@@ -2062,6 +2099,83 @@ SKIV_Image_IsUltraHDR(const wchar_t* wszFileName)
   return false;
 }
 
+#pragma region icc
+ICCPrimaries
+ParseICCPrimaries(const uint8_t* data, size_t size)
+{
+  ICCPrimaries out;
+
+  if (!data || size < 132)
+    return out;
+
+  uint32_t tagCount = ReadBE32(data + 128);
+  const uint8_t* tags = data + 132;
+
+  auto readXYZTag = [&](uint32_t sig, Chromaticity& dst) -> bool {
+    for (uint32_t i = 0; i < tagCount; i++) {
+      const uint8_t* t = tags + i * 12;
+      if (ReadBE32(t) == sig) {
+        uint32_t offset = ReadBE32(t + 4);
+        if (offset + 20 > size)
+          return false;
+
+        const uint8_t* p = data + offset;
+        if (ReadBE32(p) != 0x58595A20) // 'XYZ '
+          return false;
+
+        float X = s15Fixed16ToFloat(ReadBE32(p + 8));
+        float Y = s15Fixed16ToFloat(ReadBE32(p + 12));
+        float Z = s15Fixed16ToFloat(ReadBE32(p + 16));
+
+        return XYZtoXY(X, Y, Z, dst.x, dst.y);
+      }
+    }
+    return false;
+    };
+
+  bool ok =
+    readXYZTag(0x7258595A, out.r) && // 'rXYZ'
+    readXYZTag(0x6758595A, out.g) && // 'gXYZ'
+    readXYZTag(0x6258595A, out.b) && // 'bXYZ'
+    readXYZTag(0x77747074, out.w);   // 'wtpt'
+
+  out.valid = ok;
+  return out;
+}
+
+avifColorPrimaries
+MatchICCPrimariesToAVIF(const ICCPrimaries& icc)
+{
+  if (!icc.valid)
+    return AVIF_COLOR_PRIMARIES_UNSPECIFIED;
+
+  float bestScore = FLT_MAX;
+  avifColorPrimaries best = AVIF_COLOR_PRIMARIES_UNSPECIFIED;
+
+  for (const auto& ref : iccKnownPrimaries) {
+    float score = 0.0f;
+
+    score += iccDist2(icc.r.x, icc.r.y, ref.rx, ref.ry);
+    score += iccDist2(icc.g.x, icc.g.y, ref.gx, ref.gy);
+    score += iccDist2(icc.b.x, icc.b.y, ref.bx, ref.by);
+    score += iccDist2(icc.w.x, icc.w.y, ref.wx, ref.wy);
+
+    if (score < bestScore) {
+      bestScore = score;
+      best = ref.avif;
+    }
+  }
+
+  // Tolerance: tuned to avoid false positives
+  constexpr float kMaxError = 0.0005f;
+
+  //if (bestScore > kMaxError)
+    //return AVIF_COLOR_PRIMARIES_UNSPECIFIED;
+
+  return best;
+}
+#pragma endregion
+
 bool
 LoadLibraryTexture(image_s& image)
 {
@@ -2701,6 +2815,25 @@ LoadLibraryTexture(image_s& image)
         int bpc = rgb.depth;
         bool is_hdr_image = (avif_decoder->image->depth > 8) ||
           (avif_decoder->image->transferCharacteristics == AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084);
+
+        if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_UNSPECIFIED)
+        {
+          //attempt to parse missing primaries from icc
+          if (avif_decoder->image->icc.data && avif_decoder->image->icc.size > 0) {
+            ICCPrimaries p = ParseICCPrimaries(avif_decoder->image->icc.data, avif_decoder->image->icc.size);
+            if (p.valid) {
+              avifColorPrimaries prim = MatchICCPrimariesToAVIF(p);
+
+              if (prim != AVIF_COLOR_PRIMARIES_UNSPECIFIED) {
+                avif_decoder->image->colorPrimaries = prim;
+                if (avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT2100 ||
+                  avif_decoder->image->colorPrimaries == AVIF_COLOR_PRIMARIES_BT2020) {
+                  is_hdr_image = true;
+                }
+              }
+            }
+          }
+        }
 
         imageHasAlpha = avif_decoder->image->alphaPlane ? true : false;
 
