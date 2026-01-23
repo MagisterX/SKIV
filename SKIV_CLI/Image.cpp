@@ -2640,6 +2640,7 @@ LoadLibraryTexture(image_s& image)
         (int)DirectX::BitsPerColor(meta.format);
       image.channels =
         DirectX::HasAlpha(meta.format) ? 4 : 3; // 2 and 1 channel images are unsupported for now
+      imageHasAlpha = (image.channels == 4) ? true : false;
 
 
       if (image.is_hdr && (image_sig->mime_type == L"image/vnd.ms-photo" ||
@@ -4701,6 +4702,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
 
   bool bPrefer10bpcAs48bpp = false;
   bool bPrefer10bpcAs32bpp = false;
+  bool bPrefer32bppAlpha = false;
 
   GUID      wic_codec;
   WIC_FLAGS wic_flags = WIC_FLAGS_DITHER_DIFFUSION | (force_sRGB ? WIC_FLAGS_FORCE_SRGB : WIC_FLAGS_NONE);
@@ -4745,6 +4747,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
   {
     wic_codec = GetWICCodec(WIC_CODEC_PNG);
     //bPrefer10bpcAs48bpp = is_hdr;
+    bPrefer32bppAlpha = true;
 
     wic_flags |= WIC_FLAGS_FORCE_SRGB;
     wic_flags |= WIC_FLAGS_DEFAULT_SRGB;
@@ -4804,6 +4807,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
     wic_codec = GetWICCodec(WIC_CODEC_TIFF);
     bPrefer10bpcAs48bpp = false; // ?
     bPrefer10bpcAs32bpp = false; // ?
+    bPrefer32bppAlpha = true;
 
     if (DirectX::BitsPerColor(image.format) == 10 ||
       DirectX::BitsPerColor(image.format) == 16)
@@ -4840,6 +4844,7 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
   {
     wic_codec = GetWICCodec(WIC_CODEC_WMP);
     bPrefer10bpcAs32bpp = is_hdr;
+    bPrefer32bppAlpha = true;
     }
   else if (StrStrIW(wszExtension, L"avif")) {
 
@@ -5206,8 +5211,9 @@ SKIV_Image_SaveToDisk_SDR(const DirectX::Image& image, const wchar_t* wszFileNam
   return
     DirectX::SaveToWICFile(*pOutputImage, wic_flags, wic_codec,
       wszImplicitFileName, bPrefer10bpcAs48bpp ? &GUID_WICPixelFormat48bppRGB :
-      bPrefer10bpcAs32bpp ? &GUID_WICPixelFormat32bppBGR101010 :
-      &GUID_WICPixelFormat24bppBGR, SK_WIC_SetQuality);
+                           bPrefer10bpcAs32bpp ? &GUID_WICPixelFormat32bppBGR101010 :
+                           bPrefer32bppAlpha   ? &GUID_WICPixelFormat32bppBGRA :
+                                                 &GUID_WICPixelFormat24bppBGR, SK_WIC_SetQuality);
 }
 
 bool

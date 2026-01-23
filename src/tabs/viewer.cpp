@@ -1444,6 +1444,7 @@ LoadLibraryTexture (image_s& image)
         (int)DirectX::BitsPerColor (meta.format);
       image.channels =
         DirectX::HasAlpha          (meta.format) ? 4 : 3; // 2 and 1 channel images are unsupported for now
+      imageHasAlpha = (image.channels == 4) ? true : false;
 
 
       if (image.is_hdr && (image_sig->mime_type == L"image/vnd.ms-photo" ||

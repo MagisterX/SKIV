@@ -29,8 +29,8 @@
 #define SKIV_BUILD 9
 #define SKIV_REV   0
 
-#define MOD_BUILD 4
-#define MOD_REV   2
+#define MOD_BUILD 5
+#define MOD_REV   0
 
 
 #define _A2(a)     #a
