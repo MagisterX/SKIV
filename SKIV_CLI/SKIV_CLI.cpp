@@ -71,7 +71,7 @@ IsValidPath(std::wstring& Path)
 }
 
 bool
-IsValidOutputFilePath(const std::wstring& path)
+IsValidOutputFilePath(const std::wstring path)
 {
   if (path.empty())
     return false;
@@ -184,7 +184,7 @@ ExtensionCheck()
   }
   // Should never reach here
   LOG_E << L"Unexpected conversion state";
-  return -7;
+  return -8;
 }
 
 bool
@@ -205,7 +205,7 @@ bool boundCheck(int value, int minValue, int maxValue, std::wstring valueName)
 {
   if (value < minValue || value > maxValue) {
     LOG_E << valueName << L" must be between " << minValue << L" and " << maxValue
-      << L", got: " << Config::Quality;
+      << L", got: " << value;
     return true;
   }
   else return false;
@@ -317,7 +317,11 @@ int ParseIntArg(const wchar_t* arg, int& outValue)
 int CheckNextArg(size_t& i, int argc, LPWSTR* argv, int& value, wchar_t* name)
 {
   if (i + 1 < argc) // check that next arg exists
-  {     
+  {
+    if (argv[i + 1][0] == L'-') {
+      LOG_E << L"Missing value for " << name << L" option.";
+      return -6;
+    }
     return ParseIntArg(argv[++i], value);
   }
   else {
@@ -361,6 +365,7 @@ SKIF_Startup_ProcessAllCmdLineArgs()
     LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
 #ifdef _DEBUG
+    LocalFree(argv);
     // Debug-only command line
     LPCWSTR debugCmd =
       L"SKIV_CLI.exe "
@@ -454,7 +459,7 @@ SKIF_Startup_ProcessAllCmdLineArgs()
       }
 
       LOG_E << "Unexpected argument " << argv[i];
-      return -7;
+      return -9;
 
     }
     LocalFree(argv);
