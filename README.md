@@ -17,6 +17,14 @@ New versions will probably be distributed through their own packaged installer o
 - Copy/paste support
 - Desktop/region screenshot capture
 
+### Fork features
+
+- Automatically save screenshots to specified folder
+- Delete currently opened file
+- SDR Avif support
+- Correctly handles SDR images with alpha channel (transparency)
+- CLI tool based on SKIV for batch processing
+
 ## Format support
 
 * Ultra HDR (.jpg)
