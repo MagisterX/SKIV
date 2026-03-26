@@ -35,6 +35,55 @@ extern std::wstring defaultHDRFileExt;
 extern std::wstring defaultSDRFileExt;
 extern CComPtr <ID3D11Device> SKIF_D3D11_GetDevice (bool bWait = true);
 
+void InitPQLUT()
+{
+  if (g_PQLutInitialized)
+    return;
+
+  using namespace DirectX;
+
+  for (int i = 0; i <= PQ_LUT_SIZE; ++i)
+  {
+    float n = float(i) / float(PQ_LUT_SIZE);
+
+    XMVECTOR v = XMVectorReplicate(n);
+
+    v = SKIV_Image_PQToLinear(v);
+
+    g_PQToLinearLUT[i] = XMVectorGetX(v);
+  }
+
+  g_PQLutInitialized = true;
+}
+
+float PQToLinearFast(float x)
+{
+  x = std::clamp(x, 0.0f, 1.0f);
+
+  float pos = x * PQ_LUT_SIZE;
+
+  int idx = (int)pos;
+
+  float frac = pos - idx;
+
+  float a = g_PQToLinearLUT[idx];
+  float b = g_PQToLinearLUT[idx + 1];
+
+  return a + (b - a) * frac;
+}
+
+DirectX::XMVECTOR PQToLinearFastVec(DirectX::XMVECTOR v)
+{
+    using namespace DirectX;
+
+    float r = PQToLinearFast(XMVectorGetX(v));
+    float g = PQToLinearFast(XMVectorGetY(v));
+    float b = PQToLinearFast(XMVectorGetZ(v));
+    float a = XMVectorGetW(v);
+
+    return XMVectorSet(r, g, b, a);
+}
+
 DirectX::XMVECTOR
 SKIV_Image_PQToLinear (DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue)
 {
@@ -559,17 +608,19 @@ SKIV_HDR_CalculateContentLightInfo (const DirectX::Image& img)
 
   SK_PNG_HDR_cLLi_Payload clli;
 
-  float N          =       0.0f;
-  float fLumAccum  =       0.0f;
-  float fMaxLum    =       0.0f;
-  float fMinLum    = 5240320.0f;
+  std::atomic<int>   N          =       0   ;
+  std::atomic<float> fLumAccum  =       0.0f;
+  std::atomic<float> fMaxLumatm =       0.0f;
+  std::atomic<float> fMinLumatm = 5240320.0f;
 
   EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
     {
       UNREFERENCED_PARAMETER(y);
 
-      float fScanlineLum = 0.0f;
+      float localMax = 0.0f;
+      float localMin = 5240320.0f;
+      float localScanlineLum = 0.0f;
 
       switch (img.format)
       {
@@ -588,13 +639,13 @@ SKIV_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             const float fLum =
               XMVectorGetY (v);
 
-            fMaxLum =
-              std::max (fMaxLum, fLum);
+            localMax =
+              std::max (localMax, fLum);
 
-            fMinLum =
-              std::min (fMinLum, fLum);
+            localMin =
+              std::min (localMin, fLum);
 
-            fScanlineLum += fLum;
+            localScanlineLum += fLum;
           }
         } break;
 
@@ -612,13 +663,13 @@ SKIV_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             const float fLum =
               XMVectorGetY (v);
 
-            fMaxLum =
-              std::max (fMaxLum, fLum);
+            localMax =
+              std::max (localMax, fLum);
 
-            fMinLum =
-              std::min (fMinLum, fLum);
+            localMin =
+              std::min (localMin, fLum);
 
-            fScanlineLum += fLum;
+            localScanlineLum += fLum;
           }
         } break;
 
@@ -626,23 +677,31 @@ SKIV_HDR_CalculateContentLightInfo (const DirectX::Image& img)
           break;
       }
 
-      fLumAccum +=
-        (fScanlineLum / static_cast <float> (width));
-      ++N;
+      fLumAccum.fetch_add(localScanlineLum / static_cast <float> (width), std::memory_order_relaxed);
+
+      // spin-lock:
+      float oldMax = fMaxLumatm.load();
+      while (localMax > oldMax && !fMaxLumatm.compare_exchange_weak(oldMax, localMax));
+
+      float oldMin = fMinLumatm.load();
+      while (localMin < oldMin && !fMinLumatm.compare_exchange_weak(oldMin, localMin));
+
+      N.fetch_add(1, std::memory_order_relaxed);
     }
   );
 
   if (N > 0.0)
   {
     // 0 nits - 10k nits (limit imposed by PQ)
-    fMinLum = std::clamp (fMinLum, 0.0f,    125.0f);
-    fMaxLum = std::clamp (fMaxLum, fMinLum, 125.0f);
+    float fMinLum = std::clamp(fMaxLumatm.load(), 0.0f, 125.0f);
+    float fMaxLum = std::clamp(fMinLumatm.load(), fMinLumatm.load(), 125.0f);
 
     const float fLumRange =
             (fMaxLum - fMinLum);
 
-    auto        luminance_freq = std::make_unique <uint32_t []> (65536);
-    ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+    auto luminance_freq = std::make_unique<std::atomic<uint32_t>[]>(65536);
+    //ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+    for (int i = 0; i < 65536; ++i) luminance_freq[i].store(0, std::memory_order_relaxed);
 
     EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -656,12 +715,14 @@ SKIV_HDR_CalculateContentLightInfo (const DirectX::Image& img)
         v =
           XMVectorMax (g_XMZero, XMVector3Transform (v, c_from709toXYZ));
 
-        luminance_freq [
+        int index =
           std::clamp ( (int)
             std::roundf (
               (XMVectorGetY (v) - fMinLum)     /
                                     (fLumRange / 65536.0f) ),
-                                              0, 65535 ) ]++;
+                                              0, 65535 ) ;
+
+        luminance_freq[index].fetch_add(1, std::memory_order_relaxed);
       }
     });
 
@@ -734,6 +795,8 @@ SKIV_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchI
     {
       UNREFERENCED_PARAMETER(y);
 
+      uint16_t* line_ptr = rgb16_pixels + (y * width * 4);
+
       static const XMVECTOR pq_range_10bpc = XMVectorReplicate (1023.0f),
                             pq_range_11bpc = XMVectorReplicate (2047.0f),
                             pq_range_12bpc = XMVectorReplicate (4095.0f),
@@ -782,13 +845,11 @@ SKIV_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchI
             XMVectorMultiply (
               XMVectorSaturate (v), pq_range_out));
 
-        *(rgb16_pixels++) =
-          static_cast <uint16_t> (DirectX::XMVectorGetX (v)) << (intermediate_bits - output_bits);
-        *(rgb16_pixels++) =
-          static_cast <uint16_t> (DirectX::XMVectorGetY (v)) << (intermediate_bits - output_bits);
-        *(rgb16_pixels++) =
-          static_cast <uint16_t> (DirectX::XMVectorGetZ (v)) << (intermediate_bits - output_bits);
-          rgb16_pixels++; // We have an unused alpha channel that needs skipping
+        // using indexes instead of incremental iteration
+        line_ptr[j * 4 + 0] = static_cast<uint16_t>(DirectX::XMVectorGetX(v)) << (intermediate_bits - output_bits);
+        line_ptr[j * 4 + 1] = static_cast<uint16_t>(DirectX::XMVectorGetY(v)) << (intermediate_bits - output_bits);
+        line_ptr[j * 4 + 2] = static_cast<uint16_t>(DirectX::XMVectorGetZ(v)) << (intermediate_bits - output_bits);
+        // line_ptr[j * 4 + 3] (Alpha) // We have an unused alpha channel that needs skipping
       }
     });
   }
@@ -1138,24 +1199,31 @@ using namespace DirectX;
 
   if (_registry._SnippingTonemapsHDR == 2)
   {
-    XMVECTOR maxLum = XMVectorZero ();
+    std::atomic<float> fMaxLum { 0.0f };
 
     EvaluateImage ( *pImage,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
     {
       UNREFERENCED_PARAMETER(y);
 
+      float fLocalMaxLum = 0.0f;
+
       for (size_t j = 0; j < width; ++j)
       {
-        XMVECTOR v = *pixels++;
+        XMVECTOR v = pixels[j];
 
         v =
           XMVector3Transform (v, c_from709toXYZ);
 
-        maxLum =
-          XMVectorReplicate (XMVectorGetY (XMVectorMax (v, maxLum)));
+        fLocalMaxLum =
+          std::max(fLocalMaxLum, XMVectorGetY(v));
       }
+
+      float oldMax = fMaxLum.load(std::memory_order_relaxed);
+      while (fLocalMaxLum > oldMax && !fMaxLum.compare_exchange_weak(oldMax, fLocalMaxLum, std::memory_order_relaxed));
     });
+
+    float maxLum = fMaxLum.load();
 
     POINT          ptCursor = { };
     GetCursorPos (&ptCursor);
@@ -1165,7 +1233,7 @@ using namespace DirectX;
 
     float mastering_sdr_nits = SKIF_Util_GetSDRWhiteLevel (hMon);
 
-    if (XMVectorGetY (maxLum) > std::max (1.0f, (mastering_sdr_nits * 1.00333f) / 80.0f))
+    if (maxLum > std::max(1.0f, (mastering_sdr_nits * 1.00333f) / 80.0f))
          snipping_tonemap_mode = 0;
     else snipping_tonemap_mode = 1;
   }
@@ -1365,8 +1433,8 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
 
   using namespace DirectX;
 
-  XMVECTOR maxLum = XMVectorZero          (),
-           minLum = XMVectorSplatInfinity ();
+  std::atomic<float> fMaxLum{ 0.0f };
+  std::atomic<float> fMinLum{ 5240320.0f }; // instead of Infinity
 
   bool is_hdr = false;
 
@@ -1397,31 +1465,39 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
     {
       UNREFERENCED_PARAMETER(y);
 
+      float fLocalMax = 0.0f;
+      float fLocalMin = 5240320.0f;
+
       for (size_t j = 0; j < width; ++j)
       {
-        XMVECTOR v = *pixels++;
+        XMVECTOR v = pixels[j];
 
         v =
           XMVector3Transform (v, c_from709toXYZ);
 
-        maxLum =
-          XMVectorReplicate (XMVectorGetY (XMVectorMax (v, maxLum)));
+        float fLum = XMVectorGetY(v);
 
-        minLum =
-          XMVectorReplicate (XMVectorGetY (XMVectorMin (v, minLum))); 
+        fLocalMax = std::max(fLocalMax, fLum);
+        fLocalMin = std::min(fLocalMin, fLum);
       }
+
+      float oldMax = fMaxLum.load(std::memory_order_relaxed);
+      while (fLocalMax > oldMax && !fMaxLum.compare_exchange_weak(oldMax, fLocalMax));
+
+      float oldMin = fMinLum.load(std::memory_order_relaxed);
+      while (fLocalMin < oldMin && !fMinLum.compare_exchange_weak(oldMin, fLocalMin));
     });
 
-    if (XMVectorGetY (maxLum) > std::max (1.0f, (mastering_sdr_nits * 1.00333f) / 80.0f))
+    float maxLum = fMaxLum.load();
+    float minLum = fMinLum.load();
+    const float fLumRange = maxLum - minLum;
+
+    if (maxLum > std::max(1.0f, (mastering_sdr_nits * 1.00333f) / 80.0f))
     {
       needs_tonemapping = true;
     }
 
-    const float fLumRange =
-      XMVectorGetY (maxLum) - XMVectorGetY (minLum);
-
-    auto        luminance_freq = std::make_unique <uint32_t []> (65536);
-    ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+    auto luminance_freq = std::make_unique<std::atomic<uint32_t>[]>(65536);
     
     EvaluateImage ( *scrgb.GetImage (0,0,0),
     [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -1430,20 +1506,24 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
     
       for (size_t j = 0; j < width; ++j)
       {
-        XMVECTOR v = *pixels++;
+        XMVECTOR v = pixels[j];
     
         v =
           XMVectorMax (g_XMZero, XMVector3Transform (v, c_from709toXYZ));
-    
-        luminance_freq [
+
+        float fLum = XMVectorGetY(v);
+
+        int idex =
           std::clamp ( (int)
             std::roundf (
-              (XMVectorGetY (v) - XMVectorGetY (minLum))     /
-                                                 (fLumRange / 65536.0f) ),
-                                                           0, 65535 ) ]++;
+              (fLum - minLum)  /
+                   (fLumRange / 65536.0f) ),
+                                0, 65535 ) ;
+
+        luminance_freq[idex].fetch_add(1, std::memory_order_relaxed);
       }                                          
     });
-    
+
           double percent  = 100.0;
     const double img_size = (double)image.width *
                             (double)image.height;
@@ -1451,12 +1531,12 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
     for (auto i = 65535; i >= 0; --i)
     {
       percent -=
-        100.0 * ((double)luminance_freq [i] / img_size);
+        100.0 * ((double)luminance_freq [i].load() / img_size);
     
       if (percent <= 99.94)
       {
         maxLum =
-          XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 65536.0f)));
+          minLum + (fLumRange * ((float)i / 65536.0f));
     
         break;
       }
@@ -1477,8 +1557,10 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
 
     const float  maxYInPQ =
       std::max (SDR_YInPQ,
-        SKIV_Image_LinearToPQY (std::min (_maxNitsToTonemap, XMVectorGetY (maxLum)))
+        SKIV_Image_LinearToPQY (std::min (_maxNitsToTonemap, maxLum))
       );
+
+    std::mutex maxLumMutex;
 
     TransformImage ( scrgb.GetImages     (),
                      scrgb.GetImageCount (),
@@ -1487,13 +1569,15 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
       {
         UNREFERENCED_PARAMETER(y);
 
+        XMVECTOR localMaxRGB = g_XMZero;
+
         auto TonemapHDR = [](float L, float Lc, float Ld) -> float
         {
-          float a = (  Ld / pow (Lc, 2.0f));
+          float a = (  Ld / std::pow (Lc, 2.0f));
           float b = (1.0f / Ld);
 
           return
-            L * (1 + a * L) / (1 + b * L);
+            L * (1.0f + a * L) / (1.0f + b * L);
         };
 
         for (size_t j = 0; j < width; ++j)
@@ -1506,40 +1590,48 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
               SKIV_Image_Rec709toICtCp (value);
 
             float Y_in  = std::max (XMVectorGetX (ICtCp), 0.0f);
-            float Y_out = 1.0f;
-
-            Y_out =
+            float Y_out =
               TonemapHDR (Y_in, maxYInPQ, SDR_YInPQ);
 
             if (Y_out + Y_in > 0.0f)
             {
-              ICtCp.m128_f32 [0] =
-                std::pow (Y_in, 1.18f);
+              //lets not access ICtCp.m128_f32 [0] directly
+              //ICtCp.m128_f32 [0] =
+              //  std::pow (Y_in, 1.18f);
 
-              float I0      = XMVectorGetX (ICtCp);
-              float I1      = 0.0f;
-              float I_scale = 0.0f;
+              //float I0      = XMVectorGetX (ICtCp);
+              //float I1      = 0.0f;
+              //float I_scale = 0.0f;
 
-              ICtCp.m128_f32 [0] *=
-                std::max ((Y_out / Y_in), 0.0f);
+              //ICtCp.m128_f32 [0] *=
+              //  std::max ((Y_out / Y_in), 0.0f);
 
-              I1 = XMVectorGetX (ICtCp);
+              //I1 = XMVectorGetX (ICtCp);
 
-              if (I0 != 0.0f && I1 != 0.0f)
-              {
-                I_scale =
-                  std::min (I0 / I1, I1 / I0);
-              }
+              //if (I0 != 0.0f && I1 != 0.0f)
+              //{
+              //  I_scale = std::min (I0 / I1, I1 / I0);
+              //}
 
-              ICtCp.m128_f32 [1] *= I_scale;
-              ICtCp.m128_f32 [2] *= I_scale;
+              //ICtCp.m128_f32 [1] *= I_scale;
+              //ICtCp.m128_f32 [2] *= I_scale;
+
+              float I0 = std::pow(Y_in, 1.18f);
+              float I1 = I0 * std::max((Y_out / Y_in), 0.0f);
+              float I_scale = (I0 != 0.0f && I1 != 0.0f)
+                                ? std::min(I0 / I1, I1 / I0)
+                                   : 0.0f;
+
+              ICtCp = XMVectorSetX(ICtCp, I1);
+              ICtCp = XMVectorSetY(ICtCp, XMVectorGetY(ICtCp) * I_scale);
+              ICtCp = XMVectorSetZ(ICtCp, XMVectorGetZ(ICtCp) * I_scale);
             }
 
             value =
               SKIV_Image_ICtCptoRec709 (ICtCp);
 
-            maxTonemappedRGB =
-              XMVectorMax (maxTonemappedRGB, XMVectorMax (value, g_XMZero));
+            localMaxRGB =
+              XMVectorMax(localMaxRGB, XMVectorMax(value, g_XMZero));
           }
 
           else
@@ -1548,6 +1640,11 @@ SKIV_Image_TonemapToSDR (const DirectX::Image& image, DirectX::ScratchImage& fin
           }
 
           outPixels [j] = XMVectorSaturate (value);
+        }
+
+        if (needs_tonemapping) {
+          std::lock_guard<std::mutex> lock(maxLumMutex);
+          maxTonemappedRGB = XMVectorMax(maxTonemappedRGB, localMaxRGB);
         }
       }, tonemapped_hdr
     );
@@ -1918,6 +2015,9 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
     ScratchImage tonemapped_hdr;
     ScratchImage tonemapped_copy;
 
+    std::atomic<float> fMaxLum{ 0.0f };
+    std::atomic<float> fMinLum{ 5240320.0f }; 
+
     PLOG_INFO << "SKIV_Image_TonemapToSDR ( ): EvaluateImageBegin";
 
     EvaluateImage ( scrgb.GetImages     (),
@@ -1927,25 +2027,30 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
     {
       UNREFERENCED_PARAMETER(y);
 
+      float fLocalMax = 0.0f;
+      float fLocalMin = 5240320.0f;
+
       for (size_t j = 0; j < width; ++j)
       {
-        XMVECTOR v = *pixels++;
+        XMVECTOR v = XMVector3Transform(pixels[j], c_from709toXYZ);
+        float fLum = XMVectorGetY(v);
 
-        v =
-          XMVector3Transform (v, c_from709toXYZ);
-
-        maxLum =
-          XMVectorReplicate (XMVectorGetY (XMVectorMax (v, maxLum)));
-
-        minLum =
-          XMVectorReplicate (XMVectorGetY (XMVectorMin (v, minLum))); 
+        fLocalMax = std::max(fLocalMax, fLum);
+        fLocalMin = std::min(fLocalMin, fLum);
       }
+
+      float oldMax = fMaxLum.load(std::memory_order_relaxed);
+      while (fLocalMax > oldMax && !fMaxLum.compare_exchange_weak(oldMax, fLocalMax));
+
+      float oldMin = fMinLum.load(std::memory_order_relaxed);
+      while (fLocalMin < oldMin && !fMinLum.compare_exchange_weak(oldMin, fLocalMin));
     });
 
-    minLum = XMVectorMax (g_XMZero, minLum);
+    minLum = XMVectorMax(g_XMZero, XMVectorReplicate(fMinLum.load()));
+    maxLum = XMVectorReplicate(fMaxLum.load());
 
-    auto        luminance_freq = std::make_unique <uint32_t []> (65536);
-    ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+    auto luminance_freq = std::make_unique <std::atomic<uint32_t>[]>(65536);
+    for (int i = 0; i < 65536; ++i) luminance_freq[i].store(0, std::memory_order_relaxed);
 
     const float fLumRange =
       XMVectorGetY (maxLum) -
@@ -1960,17 +2065,16 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
 
       for (size_t j = 0; j < width; ++j)
       {
-        XMVECTOR v = *pixels++;
+        XMVECTOR v = XMVectorMax(g_XMZero, XMVector3Transform(pixels[j], c_from709toXYZ));
 
-        v =
-          XMVectorMax (g_XMZero, XMVector3Transform (v, c_from709toXYZ));
-
-        luminance_freq [
+        int index =
           std::clamp ( (int)
             std::roundf (
               (XMVectorGetY (v) - XMVectorGetY (minLum)) /
                                               (fLumRange / 65536.0f) ),
-                                                        0, 65535 ) ]++;
+                                                        0, 65535 ) ;
+
+        luminance_freq[index].fetch_add(1, std::memory_order_relaxed);
       }
     });
 
@@ -1981,7 +2085,7 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
     for (auto i = 65535; i >= 0; --i)
     {
       percent -=
-        100.0 * ((double)luminance_freq [i] / img_size);
+        100.0 * ((double)luminance_freq [i].load() / img_size);
 
       if (percent <= 99.94)
       {
@@ -2022,12 +2126,16 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
       needs_tonemapping = true;
     }
 
+    std::mutex maxLumMutex;
+
     TransformImage ( scrgb.GetImages     (),
                      scrgb.GetImageCount (),
                      scrgb.GetMetadata   (),
       [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
       {
         UNREFERENCED_PARAMETER(y);
+
+        XMVECTOR localMaxRGB = g_XMZero;
 
         auto TonemapHDR = [](float L, float Lc, float Ld) -> float
         {
@@ -2055,38 +2163,32 @@ SKIV_Image_SaveToDisk_SDR (const DirectX::Image& image, const wchar_t* wszFileNa
 
           if (Y_out + Y_in > 0.0f)
           {
-            ICtCp.m128_f32 [0] =
-              std::pow (Y_in, 1.18f);
+            float I0 = std::pow(Y_in, 1.18f);
+            float I1 = I0 * std::max((Y_out / Y_in), 0.0f);
+            float I_scale = (I0 != 0.0f && I1 != 0.0f)
+                                ? std::min(I0 / I1, I1 / I0)
+                                   : 0.0f;
 
-            float I0      = XMVectorGetX (ICtCp);
-            float I1      = 0.0f;
-            float I_scale = 0.0f;
-
-            ICtCp.m128_f32 [0] *=
-              std::max ((Y_out / Y_in), 0.0f);
-
-            I1 = XMVectorGetX (ICtCp);
-
-            if (I0 != 0.0f && I1 != 0.0f)
-            {
-              I_scale =
-                std::min (I0 / I1, I1 / I0);
-            }
-
-            ICtCp.m128_f32 [1] *= I_scale;
-            ICtCp.m128_f32 [2] *= I_scale;
+            ICtCp = XMVectorSetX(ICtCp, I1);
+            ICtCp = XMVectorSetY(ICtCp, XMVectorGetY(ICtCp) * I_scale);
+            ICtCp = XMVectorSetZ(ICtCp, XMVectorGetZ(ICtCp) * I_scale);
           }
 
           value =
             SKIV_Image_ICtCptoRec709 (ICtCp);
 
-          maxTonemappedRGB =
-            XMVectorMax (maxTonemappedRGB, XMVectorMax (value, g_XMZero));
+          localMaxRGB =
+            XMVectorMax (localMaxRGB, XMVectorMax (value, g_XMZero));
           }
 
           if (bPrefer10bpcAs48bpp || bPrefer10bpcAs32bpp)
                outPixels [j] = XMVectorSaturate (value);
-          else outPixels [j] = XMVectorSaturate (value);
+          else outPixels [j] = XMVectorSaturate (value);//??
+        }
+
+        if (needs_tonemapping) {
+          std::lock_guard<std::mutex> lock(maxLumMutex);
+          maxTonemappedRGB = XMVectorMax(maxTonemappedRGB, localMaxRGB);
         }
       }, tonemapped_hdr
     );
@@ -2875,22 +2977,24 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
 
       std::vector <float> fp_pixels (image.width * image.height * 3);
 
-      auto fp_pixel_comp =
-        fp_pixels.begin ();
+      float* fp_pixel_comp =
+        fp_pixels.data ();
 
       EvaluateImage ( image,
         [&](const XMVECTOR* pixels, size_t width, size_t y)
         {
           UNREFERENCED_PARAMETER(y);
 
+          float* line_ptr = fp_pixel_comp + (y * width * 3);
+
           for (size_t j = 0; j < width; ++j)
           {
             XMVECTOR v =
               *pixels++;
 
-            *fp_pixel_comp++ = XMVectorGetX (v);
-            *fp_pixel_comp++ = XMVectorGetY (v);
-            *fp_pixel_comp++ = XMVectorGetZ (v);
+            line_ptr[j * 3 + 0] = XMVectorGetX (v);
+            line_ptr[j * 3 + 1] = XMVectorGetY (v);
+            line_ptr[j * 3 + 2] = XMVectorGetZ (v);
           }
         }
       );
@@ -3098,14 +3202,16 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
           [&](const DirectX::XMVECTOR* pixels, size_t width, size_t y)
           {
             UNREFERENCED_PARAMETER(y);
+
+            uint16_t* line_ptr = rgb_pixels + (y * width * 3);
     
             for (size_t j = 0; j < width; ++j)
             {
               DirectX::XMVECTOR v = *pixels++;
     
-              *(rgb_pixels++) = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetX (v) * 1024.0f)));
-              *(rgb_pixels++) = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetY (v) * 1024.0f)));
-              *(rgb_pixels++) = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetZ (v) * 1024.0f)));
+              line_ptr[j * 3 + 0] = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetX (v) * 1024.0f)));
+              line_ptr[j * 3 + 1] = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetY (v) * 1024.0f)));
+              line_ptr[j * 3 + 2] = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetZ (v) * 1024.0f)));
             }
           } );
         } break;
@@ -3116,17 +3222,19 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
           uint16_t* rgb16_pixels = (uint16_t *)rgb.pixels;
           uint8_t*  rgb8_pixels  = (uint8_t  *)rgb.pixels;
 
-          float N          =       0.0f;
-          float fLumAccum  =       0.0f;
-          float fMaxLum    =       0.0f;
-          float fMinLum    = 5240320.0f;
+          std::atomic<int>   N          =       0   ;
+          std::atomic<float> fLumAccum  =       0.0f;
+          std::atomic<float> fMaxLumatm =       0.0f;
+          std::atomic<float> fMinLumatm = 5240320.0f;
 
           EvaluateImage ( image,
             [&](const XMVECTOR* pixels, size_t width, size_t y)
             {
               UNREFERENCED_PARAMETER(y);
 
-              float fScanlineLum = 0.0f;
+              float localMax = 0.0f;
+              float localMin = 5240320.0f;
+              float localScanlineLum = 0.0f;
 
               switch (image.format)
               {
@@ -3145,13 +3253,13 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
                     const float fLum =
                       XMVectorGetY (v);
 
-                    fMaxLum =
-                      std::max (fMaxLum, fLum);
+                    localMax =
+                      std::max (localMax, fLum);
 
-                    fMinLum =
-                      std::min (fMinLum, fLum);
+                    localMin =
+                      std::min (localMin, fLum);
 
-                    fScanlineLum += fLum;
+                    localScanlineLum += fLum;
                   }
                 } break;
 
@@ -3169,13 +3277,13 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
                     const float fLum =
                       XMVectorGetY (v);
 
-                    fMaxLum =
-                      std::max (fMaxLum, fLum);
+                    localMax =
+                      std::max(localMax, fLum);
 
-                    fMinLum =
-                      std::min (fMinLum, fLum);
+                    localMin =
+                      std::min(localMin, fLum);
 
-                    fScanlineLum += fLum;
+                    localScanlineLum += fLum;
                   }
                 } break;
 
@@ -3183,23 +3291,31 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
                   break;
               }
 
-              fLumAccum +=
-                (fScanlineLum / static_cast <float> (width));
-              ++N;
+              fLumAccum.fetch_add(localScanlineLum / static_cast <float> (width), std::memory_order_relaxed);
+
+              // spin-lock:
+              float oldMax = fMaxLumatm.load();
+              while (localMax > oldMax && !fMaxLumatm.compare_exchange_weak(oldMax, localMax));
+
+              float oldMin = fMinLumatm.load();
+              while (localMin < oldMin && !fMinLumatm.compare_exchange_weak(oldMin, localMin));
+
+              N.fetch_add(1, std::memory_order_relaxed);
             }
           );
 
           if (N > 0.0)
           {
             // 0 nits - 10k nits (limit imposed by PQ)
-            fMinLum = std::clamp (fMinLum, 0.0f,    125.0f);
-            fMaxLum = std::clamp (fMaxLum, fMinLum, 125.0f);
+            float fMinLum = std::clamp (fMaxLumatm.load(), 0.0f, 125.0f);
+            float fMaxLum = std::clamp (fMinLumatm.load(), fMinLumatm.load(), 125.0f);
 
             const float fLumRange =
                     (fMaxLum - fMinLum);
 
-            auto        luminance_freq = std::make_unique <uint32_t []> (65536);
-            ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+            auto luminance_freq = std::make_unique<std::atomic<uint32_t>[]>(65536);
+            //ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+            for (int i = 0; i < 65536; ++i) luminance_freq[i].store(0, std::memory_order_relaxed);
 
             EvaluateImage ( image,
             [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -3213,12 +3329,15 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
                 v =
                   XMVectorMax (g_XMZero, XMVector3Transform (v, c_from709toXYZ));
 
-                luminance_freq [
+
+                int index =
                   std::clamp ( (int)
                     std::roundf (
                       (XMVectorGetY (v) - fMinLum)     /
                                             (fLumRange / 65536.0f) ),
-                                                      0, 65535 ) ]++;
+                                                      0, 65535 ) ;
+
+                luminance_freq[index].fetch_add(1, std::memory_order_relaxed);
               }
             });
 
@@ -3267,7 +3386,10 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
           [&](_In_reads_ (width) const XMVECTOR* pixels, size_t width, size_t y)
           {
             UNREFERENCED_PARAMETER (y);
-    
+
+            uint16_t* line_rgb16 = rgb16_pixels + (y * width * 3);
+            uint8_t* line_rgb8 = rgb8_pixels + (y * width * 3);
+
             for (size_t j = 0; j < width; ++j)
             {
               XMVECTOR value = pixels [j];
@@ -3284,16 +3406,16 @@ SKIV_Image_SaveToDisk_HDR (const DirectX::Image& image, const wchar_t* wszFileNa
 
               if (bit_depth > 8)
               {
-                *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetX (value));
-                *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetY (value));
-                *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetZ (value));
+                line_rgb16[j * 3 + 0] = static_cast <uint16_t> (DirectX::XMVectorGetX (value));
+                line_rgb16[j * 3 + 1] = static_cast <uint16_t> (DirectX::XMVectorGetY (value));
+                line_rgb16[j * 3 + 2] = static_cast <uint16_t> (DirectX::XMVectorGetZ (value));
               }
 
               else
               {
-                *(rgb8_pixels++) = static_cast <uint8_t> (DirectX::XMVectorGetX (value));
-                *(rgb8_pixels++) = static_cast <uint8_t> (DirectX::XMVectorGetY (value));
-                *(rgb8_pixels++) = static_cast <uint8_t> (DirectX::XMVectorGetZ (value));
+                line_rgb8[j * 3 + 0] = static_cast <uint8_t> (DirectX::XMVectorGetX (value));
+                line_rgb8[j * 3 + 1] = static_cast <uint8_t> (DirectX::XMVectorGetY (value));
+                line_rgb8[j * 3 + 2] = static_cast <uint8_t> (DirectX::XMVectorGetZ (value));
               }
             }
           } );

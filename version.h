@@ -29,7 +29,7 @@
 #define SKIV_BUILD 9
 #define SKIV_REV   0
 
-#define MOD_BUILD 5
+#define MOD_BUILD 6
 #define MOD_REV   0
 
 

@@ -470,7 +470,7 @@ struct SKIF_RegistrySettings {
   std::wstring wsDefaultHDRExt = L".png";
   std::wstring wsDefaultSDRExt = L".png";
   std::wstring wsCaptureFolder;
-  char capturePathBuf[256] = { 0 };//stupid imGui InputText doesn't accept wstring
+  char capturePathBuf[256] = { 0 };//imGui InputText doesn't accept wstring
 
   // Encoder config
   struct {

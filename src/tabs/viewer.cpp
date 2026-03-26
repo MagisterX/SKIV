@@ -1315,20 +1315,41 @@ LoadLibraryTexture (image_s& image)
             if (SUCCEEDED (img.InitializeFromImage (*temp_img2.GetImage (0,0,0))))
             {
               using namespace DirectX;
-
-              TransformImage ( temp_img2.GetImages     (),
+              InitPQLUT();
+              TransformImage  (temp_img2.GetImages     (),
                                temp_img2.GetImageCount (),
                                temp_img2.GetMetadata   (),
               [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
               {
                 UNREFERENCED_PARAMETER(y);
               
+                //for (size_t j = 0; j < width; ++j)
+                //{
+                // XMVECTOR v = inPixels [j];
+
+                //  outPixels [j] =
+                //    XMVector3Transform (SKIV_Image_PQToLinear (v), c_Bt2100toscRGB);
+
+                //}
+
+                const XMVECTOR m0 = c_Bt2100toscRGB.r[0];
+                const XMVECTOR m1 = c_Bt2100toscRGB.r[1];
+                const XMVECTOR m2 = c_Bt2100toscRGB.r[2];
+
                 for (size_t j = 0; j < width; ++j)
                 {
-                  XMVECTOR v = inPixels [j];
+                  XMVECTOR v = PQToLinearFastVec(inPixels[j]);
 
-                  outPixels [j] =
-                    XMVector3Transform (SKIV_Image_PQToLinear (v), c_Bt2100toscRGB);
+                  // Manual matrix multiply instead of XMVector3Transform
+                  XMVECTOR r =
+                    XMVectorMultiplyAdd(
+                      XMVectorSplatX(v), m0,
+                      XMVectorMultiplyAdd(
+                        XMVectorSplatY(v), m1,
+                        XMVectorMultiply(
+                          XMVectorSplatZ(v), m2)));
+
+                  outPixels[j] = r;
                 }
               }, img );
 
@@ -2205,6 +2226,8 @@ LoadLibraryTexture (image_s& image)
 
     static constexpr float FLT16_MIN = 0.0000000894069671630859375f;
 
+    std::mutex stats_mtx;
+
     EvaluateImage ( pImg->GetImages     (),
                     pImg->GetImageCount (),
                     pImg->GetMetadata   (),
@@ -2212,37 +2235,34 @@ LoadLibraryTexture (image_s& image)
     {
       UNREFERENCED_PARAMETER(y);
 
-      XMVECTOR vColorXYZ;
-      XMVECTOR vColorDCIP3;
-      XMVECTOR vColor2020;
-      XMVECTOR vColorAP1;
-      XMVECTOR vColorAP0;
-      XMVECTOR v;
+      XMVECTOR local_vMaxCLL = g_XMZero;
+      double local_dScanlineLum = 0.0;
+      float local_fMaxLum = -1e10f; // возможно перебор
+      float local_fMinLum = 1e10f;
 
+      // local proxies for threads
+      struct {
+        uint32_t rec_709 = 0, dci_p3 = 0, rec_2020 = 0, ap1 = 0, ap0 = 0, undefined = 0, total = 0;
+      } local_counts;
+
+      XMVECTOR v, vColorXYZ, vColorDCIP3, vColor2020, vColorAP1, vColorAP0;
       uint32_t xm_test_all = 0x0;
-
-      double dScanlineLum = 0.0;
 
       for (size_t j = 0; j < width; ++j)
       {
         v = *pixels;
-
-        vMaxCLL =
-          XMVectorMax (v, vMaxCLL);
-
-        vColorXYZ =
-          XMVector3Transform (v, c_from709toXYZ);
+        local_vMaxCLL = XMVectorMax(v, local_vMaxCLL);
 
         xm_test_all = 0x0;
+        vColorXYZ = XMVector3Transform(v, c_from709toXYZ);
 
         #define FP16_MIN 0.0005f
 
         if (XMVectorGreaterOrEqualR (&xm_test_all, v, g_XMZero);
             XMComparisonAllTrue     ( xm_test_all) || XMVectorGetY (vColorXYZ) < FP16_MIN)
         {
-          image.colorimetry.pixel_counts.rec_709++;
+          local_counts.rec_709++;
         }
-
         else
         {
           vColorDCIP3 =
@@ -2268,52 +2288,50 @@ LoadLibraryTexture (image_s& image)
 
                 if (XMVectorGreaterOrEqualR (&xm_test_all, vColorAP0, g_XMZero);
                     XMComparisonAnyFalse    ( xm_test_all))
-                {
-                  image.colorimetry.pixel_counts.undefined++;
-                }
-
+                  local_counts.undefined++;
                 else
-                {
-                  image.colorimetry.pixel_counts.ap0++;
-                }
+                  local_counts.ap0++;
               }
-
               else
-              {
-                image.colorimetry.pixel_counts.ap1++;
-              }
+                local_counts.ap1++;
             }
-
             else
-            {
-              image.colorimetry.pixel_counts.rec_2020++;
-            }
+              local_counts.rec_2020++;
           }
-
           else
-          {
-            image.colorimetry.pixel_counts.dci_p3++;
-          }
+            local_counts.dci_p3++;
         }
 
-        image.colorimetry.pixel_counts.total++;
+        local_counts.total++;
 
         const float fLum =
-          XMVectorGetY (vColorXYZ);
-
-        fMaxLum =
-          std::max (fMaxLum, fLum);
-        fMinLum =
-          std::min (fMinLum, fLum);
-
-        dScanlineLum +=
-          std::max (0.0, static_cast <double> (fLum));
+          XMVectorGetY(vColorXYZ);
+        local_fMaxLum = std::max(local_fMaxLum, fLum);
+        local_fMinLum = std::min(local_fMinLum, fLum);
+        local_dScanlineLum += std::max(0.0, static_cast<double>(fLum));
 
         pixels++;
       }
+      //nope, no buggy openmp here, it skips whole pixel lines randomly
+//#pragma omp critical(stats_update)
+      {
+        std::lock_guard<std::mutex> lock(stats_mtx);
+        vMaxCLL = XMVectorMax(vMaxCLL, local_vMaxCLL);
 
-      dLumAccum +=
-        (dScanlineLum / static_cast <float> (width));
+        image.colorimetry.pixel_counts.rec_709 += local_counts.rec_709;
+        image.colorimetry.pixel_counts.dci_p3 += local_counts.dci_p3;
+        image.colorimetry.pixel_counts.rec_2020 += local_counts.rec_2020;
+        image.colorimetry.pixel_counts.ap1 += local_counts.ap1;
+        image.colorimetry.pixel_counts.ap0 += local_counts.ap0;
+        image.colorimetry.pixel_counts.undefined += local_counts.undefined;
+        image.colorimetry.pixel_counts.total += local_counts.total;
+
+        fMaxLum = std::max(fMaxLum, local_fMaxLum);
+        fMinLum = std::min(fMinLum, local_fMinLum);
+        //why divide so many times when can divide once later?
+        //dLumAccum += (local_dScanlineLum / static_cast<double>(width));
+        dLumAccum += local_dScanlineLum;
+      }
     } );
 
     float fMaxLumActual =           fMaxLum;
@@ -2399,7 +2417,7 @@ LoadLibraryTexture (image_s& image)
 
     // We use the sum of averages per-scanline to help avoid overflow
     image.light_info.avg_nits     = static_cast <float> (80.0 *
-      (dLumAccum / static_cast <double> (meta.height)));
+      (dLumAccum / static_cast <double> (meta.height*meta.width)));
   }
 
   HRESULT hr =
@@ -2452,6 +2470,24 @@ LoadLibraryTexture (image_s& image)
     {
       DWORD post = SKIF_Util_timeGetTime1 ( );
       PLOG_INFO << "[Image Processing] Processed image in " << (post - pre) << " ms.";
+      ImGui::InsertNotification(
+        {
+          ImGuiToastType::Info,
+          3000,
+          "[Image Processing] Processed image in %d ms.",
+          (post - pre)
+        }
+      );
+      //PLOG_INFO << "\nMaxCLL(scRGB) : " << image.light_info.max_cll <<
+      //  "\nMax Luminance: " << image.light_info.max_nits <<
+      //  "\nAvg Luminance: " << image.light_info.avg_nits <<
+      //  "\nMin Luminance: " << image.light_info.min_nits <<
+      //  "\nRec709: " << image.colorimetry.pixel_counts.getPercentRec709() <<
+      //  "\nDCIP3: " << image.colorimetry.pixel_counts.getPercentDCIP3() <<
+      //  "\nRec2020: " << image.colorimetry.pixel_counts.getPercentRec2020() <<
+      //  "\nAP1: " << image.colorimetry.pixel_counts.getPercentAP1() <<
+      //  "\nAP0: " << image.colorimetry.pixel_counts.getPercentAP0() <<
+      //  "\nUndefined: " << image.colorimetry.pixel_counts.getPercentUndefined();
 
       // Update the image width/height
       image.width  = static_cast<float>(meta.width);

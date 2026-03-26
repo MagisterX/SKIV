@@ -133,8 +133,14 @@ static const ParamsPQ PQ =
 };
 
 #pragma warning( pop )
+static constexpr int PQ_LUT_SIZE = 4096;
+static float g_PQToLinearLUT[PQ_LUT_SIZE + 1];
+static bool g_PQLutInitialized = false;
 
 // Declarations
+void              InitPQLUT                ();
+float             PQToLinearFast           (float x);
+DirectX::XMVECTOR PQToLinearFastVec        (DirectX::XMVECTOR v);
 DirectX::XMVECTOR SKIV_Image_PQToLinear    (DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = DirectX::g_XMOne);
 DirectX::XMVECTOR SKIV_Image_LinearToPQ    (DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = DirectX::g_XMOne);
 float             SKIV_Image_LinearToPQY   (float N);
