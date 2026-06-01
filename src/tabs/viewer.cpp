@@ -1106,6 +1106,17 @@ LoadLibraryTexture (image_s& image)
   PLOG_DEBUG_IF(decoder == ImageDecoder_HDR ) << "Using Radiance HDR decoder...";
   PLOG_DEBUG_IF(decoder == ImageDecoder_UHDR) << "Using Ultra HDR decoder...";
 
+  if (image_sig->mime_type == L"image/png" && decoder == ImageDecoder_stbi)
+  {
+    //Instant fallback to WIC if image size is too big, STBI will just waste time loading it
+    size_t img_size = _.getInitialSize();
+
+    if (img_size > 10 * 1024 * 1024) { // 10 MB
+      decoder = ImageDecoder_WIC;
+      PLOG_WARNING << "Using WIC decoder due to STB not optimized for image of size: " << img_size;
+    }
+  }
+
   if (decoder == ImageDecoder_None)
     return false;
 
