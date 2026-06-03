@@ -1074,7 +1074,7 @@ LoadLibraryTexture (image_s& image)
         if (type.mime_type == L"image/vnd.radiance" || // .hdr
             type.mime_type == L"image/vnd.ms-photo" || // .jxr
             type.mime_type == L"image/avif"         || // .avif
-            type.mime_type == L"image/x-exr")          // .exr
+            type.mime_type == L"image/x-exr")          // .exr            
         {
           image.is_hdr = true;
         }
@@ -1478,6 +1478,55 @@ LoadLibraryTexture (image_s& image)
         DirectX::HasAlpha          (meta.format) ? 4 : 3; // 2 and 1 channel images are unsupported for now
       imageHasAlpha = (image.channels == 4) ? true : false;
 
+      if (image.bpc >= 16 &&
+          meta.format == DXGI_FORMAT_R16G16B16A16_UNORM)
+      {
+        image.is_hdr = true;
+        image.light_info.isHDR = true;
+
+        DirectX::ScratchImage temp_img2 = { };
+
+        PLOG_INFO << "HDR image detected";
+        // PNG will be loaded as UNORM, we need to convert to float...
+        if (SUCCEEDED(DirectX::Convert(*img.GetImages(), DXGI_FORMAT_R16G16B16A16_FLOAT, DirectX::TEX_FILTER_DEFAULT, 0.0f, temp_img2)))
+          if (SUCCEEDED(img.InitializeFromImage(*temp_img2.GetImage(0, 0, 0))))
+          {
+            using namespace DirectX;
+            InitPQLUT();
+            TransformImage(temp_img2.GetImages(),
+              temp_img2.GetImageCount(),
+              temp_img2.GetMetadata(),
+              [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+              {
+                UNREFERENCED_PARAMETER(y);
+
+                const XMVECTOR m0 = c_Bt2100toscRGB.r[0];
+                const XMVECTOR m1 = c_Bt2100toscRGB.r[1];
+                const XMVECTOR m2 = c_Bt2100toscRGB.r[2];
+
+                for (size_t j = 0; j < width; ++j)
+                {
+                  XMVECTOR v = PQToLinearFastVec(inPixels[j]);
+
+                  // Manual matrix multiply instead of XMVector3Transform
+                  XMVECTOR r =
+                    XMVectorMultiplyAdd(
+                      XMVectorSplatX(v), m0,
+                      XMVectorMultiplyAdd(
+                        XMVectorSplatY(v), m1,
+                        XMVectorMultiply(
+                          XMVectorSplatZ(v), m2)));
+
+                  outPixels[j] = r;
+                }
+              }, img);
+
+            meta.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            converted = true;
+            succeeded = true;
+            need_srgb = false;            
+          }
+      }
 
       if (image.is_hdr && (image_sig->mime_type == L"image/vnd.ms-photo" ||
                            image_sig->mime_type == L"image/avif"))
@@ -1676,8 +1725,9 @@ LoadLibraryTexture (image_s& image)
 
         imageHasAlpha = avif_decoder->image->alphaPlane ? true : false;
 
-        DXGI_FORMAT dxgi_format = is_hdr_image ? DXGI_FORMAT_R16G16B16A16_FLOAT :
-                                                 DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+        DXGI_FORMAT dxgi_format = is_hdr_image  ? DXGI_FORMAT_R16G16B16A16_FLOAT  :
+                                  imageHasAlpha ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB :
+                                                  DXGI_FORMAT_B8G8R8X8_UNORM_SRGB ;
 
         rgb.depth       = is_hdr_image ? 16 : 8;
         rgb.format      = is_hdr_image ? AVIF_RGB_FORMAT_RGBA : AVIF_RGB_FORMAT_BGRA;
