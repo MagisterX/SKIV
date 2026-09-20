@@ -1,0 +1,752 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{93301458-CC3B-4924-B659-EB190D6EF9EB}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>SKIV</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+    <VCToolsVersion>14.36.32532</VCToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <PlatformToolset>v143</PlatformToolset>
+    <VCToolsVersion>14.36.32532</VCToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+    <VCToolsVersion>14.36.32532</VCToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <PlatformToolset>v143</PlatformToolset>
+    <VCToolsVersion>14.36.32532</VCToolsVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);.\resources\;.\packages_misc\;.\packages_misc\gsl\</IncludePath>
+    <TargetName>$(ProjectName)32</TargetName>
+    <OutDir>Builds\</OutDir>
+    <IntDir>Builds\$(Platform)-$(Configuration)\</IntDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);.\resources\;.\packages_misc\;.\packages_misc\gsl\</IncludePath>
+    <OutDir>Builds\</OutDir>
+    <IntDir>Builds\$(Platform)-$(Configuration)\</IntDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>Builds\</OutDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);.\resources\;.\packages_misc\;.\packages_misc\gsl\</IncludePath>
+    <TargetName>$(ProjectName)32</TargetName>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <IntDir>Builds\$(Platform)-$(Configuration)\</IntDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);.\resources\;.\packages_misc\;.\packages_misc\gsl\</IncludePath>
+    <OutDir>Builds\</OutDir>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <IntDir>Builds\$(Platform)-$(Configuration)\</IntDir>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WIN32</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <StringPooling>true</StringPooling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <OpenMPSupport>false</OpenMPSupport>
+      <AdditionalOptions>/Ob3 %(AdditionalOptions)</AdditionalOptions>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;d3d11.lib;dbghelp.lib;dwmapi.lib;dxgi.lib;gdi32.lib;kernel32.lib;odbc32.lib;odbccp32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;version.lib;winmm.lib;winspool.lib</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <AdditionalOptions>/DEPENDENTLOADFLAG:0x800 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>post_build.bat "$(TargetPath)" "$(TargetFileName)"</Command>
+      <Message>Execute post-build events</Message>
+    </PostBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>.\resources\appcompat.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_DEBUG;_WINDOWS;%(PreprocessorDefinitions);_WIN64</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <StringPooling>true</StringPooling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <OpenMPSupport>false</OpenMPSupport>
+      <AdditionalOptions>/Ob3 %(AdditionalOptions)</AdditionalOptions>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;d3d11.lib;dbghelp.lib;dwmapi.lib;dxgi.lib;gdi32.lib;kernel32.lib;odbc32.lib;odbccp32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;version.lib;winmm.lib;winspool.lib</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <AdditionalOptions>/DEPENDENTLOADFLAG:0x800 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions);_WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>post_build.bat "$(TargetPath)" "$(TargetFileName)"</Command>
+      <Message>Execute post-build events</Message>
+    </PostBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>.\resources\appcompat.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);WIN32</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <StringPooling>true</StringPooling>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include</AdditionalIncludeDirectories>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <OmitFramePointers>true</OmitFramePointers>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <OpenMPSupport>false</OpenMPSupport>
+      <AdditionalOptions>/Ob3 /Zf %(AdditionalOptions)</AdditionalOptions>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <SDLCheck>false</SDLCheck>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <ErrorReporting>None</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;d3d11.lib;dbghelp.lib;dwmapi.lib;dxgi.lib;gdi32.lib;kernel32.lib;odbc32.lib;odbccp32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;version.lib;winmm.lib;winspool.lib</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
+      <LargeAddressAware>true</LargeAddressAware>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <SetChecksum>true</SetChecksum>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <Profile>true</Profile>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <AdditionalOptions>/DEPENDENTLOADFLAG:0x800 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>.\resources\appcompat.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>post_build.bat "$(TargetPath)" "$(TargetFileName)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Execute post-build events</Message>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_WIN64</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <StringPooling>true</StringPooling>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include</AdditionalIncludeDirectories>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <OmitFramePointers>true</OmitFramePointers>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <OpenMPSupport>false</OpenMPSupport>
+      <AdditionalOptions>/Ob3 /Zf %(AdditionalOptions)</AdditionalOptions>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <SDLCheck>false</SDLCheck>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <ErrorReporting>None</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;d3d11.lib;dbghelp.lib;dwmapi.lib;dxgi.lib;gdi32.lib;kernel32.lib;odbc32.lib;odbccp32.lib;ole32.lib;oleaut32.lib;shell32.lib;user32.lib;uuid.lib;version.lib;winmm.lib;winspool.lib</AdditionalDependencies>
+      <DelayLoadDLLs>
+      </DelayLoadDLLs>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <SetChecksum>true</SetChecksum>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <Profile>true</Profile>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <AdditionalOptions>/DEPENDENTLOADFLAG:0x800 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>.\resources\appcompat.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions);_WIN64</PreprocessorDefinitions>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>post_build.bat "$(TargetPath)" "$(TargetFileName)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Execute post-build events</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="include\avif\avif.h" />
+    <ClInclude Include="include\avif\internal.h" />
+    <ClInclude Include="include\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="include\jxl\cms.h" />
+    <ClInclude Include="include\jxl\cms_interface.h" />
+    <ClInclude Include="include\jxl\codestream_header.h" />
+    <ClInclude Include="include\jxl\color_encoding.h" />
+    <ClInclude Include="include\jxl\compressed_icc.h" />
+    <ClInclude Include="include\jxl\decode.h" />
+    <ClInclude Include="include\jxl\decode_cxx.h" />
+    <ClInclude Include="include\jxl\encode.h" />
+    <ClInclude Include="include\jxl\encode_cxx.h" />
+    <ClInclude Include="include\jxl\gain_map.h" />
+    <ClInclude Include="include\jxl\memory_manager.h" />
+    <ClInclude Include="include\jxl\parallel_runner.h" />
+    <ClInclude Include="include\jxl\resizable_parallel_runner.h" />
+    <ClInclude Include="include\jxl\resizable_parallel_runner_cxx.h" />
+    <ClInclude Include="include\jxl\stats.h" />
+    <ClInclude Include="include\jxl\thread_parallel_runner.h" />
+    <ClInclude Include="include\jxl\thread_parallel_runner_cxx.h" />
+    <ClInclude Include="include\jxl\types.h" />
+    <ClInclude Include="include\MinHook.h" />
+    <ClInclude Include="include\ultrahdr\editorhelper.h" />
+    <ClInclude Include="include\ultrahdr\gainmapmath.h" />
+    <ClInclude Include="include\ultrahdr\gainmapmetadata.h" />
+    <ClInclude Include="include\ultrahdr\icc.h" />
+    <ClInclude Include="include\ultrahdr\jpegdecoderhelper.h" />
+    <ClInclude Include="include\ultrahdr\jpegencoderhelper.h" />
+    <ClInclude Include="include\ultrahdr\jpegr.h" />
+    <ClInclude Include="include\ultrahdr\jpegrutils.h" />
+    <ClInclude Include="include\ultrahdr\multipictureformat.h" />
+    <ClInclude Include="include\ultrahdr\ultrahdr.h" />
+    <ClInclude Include="include\ultrahdr\ultrahdrcommon.h" />
+    <ClInclude Include="include\ultrahdr\ultrahdr_api.h" />
+    <ClInclude Include="include\utility\DirectXTexEXR.h" />
+    <ClInclude Include="include\utility\droptarget.hpp" />
+    <ClInclude Include="include\utility\gamepad.h" />
+    <ClInclude Include="include\utility\image.h" />
+    <ClInclude Include="include\utility\plog_formatter.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\half.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\halfExport.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\halfFunction.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\halfLimits.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\Iex.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexBaseExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexErrnoExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexExport.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexForward.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMacros.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathFloatExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathFpu.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexMathIeeeExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexNamespace.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IexThrowErrnoExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmBaseConfig.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThread.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadExport.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadForward.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadMutex.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadNamespace.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadPool.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\IlmThreadSemaphore.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathBox.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathBoxAlgo.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathColor.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathColorAlgo.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathEuler.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathExc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathExport.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathForward.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFrame.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFrustum.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFrustumTest.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathFun.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathGL.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathGLU.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathHalfLimits.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathInt64.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathInterval.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathLimits.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathLine.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathLineAlgo.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathMath.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathMatrix.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathMatrixAlgo.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathNamespace.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathPlane.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathPlatform.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathQuat.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathRandom.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathRoots.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathShear.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathSphere.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathVec.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImathVecAlgo.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfAcesFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfArray.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfB44Compressor.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfBoxAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChannelList.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChannelListAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChromaticities.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfChromaticitiesAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCompositeDeepScanLine.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCompression.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCompressionAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfConvert.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfCRgbaFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepCompositing.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepFrameBuffer.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImage.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageChannel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageIO.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageLevel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageState.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepImageStateAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineInputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineInputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineOutputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepScanLineOutputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledInputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledInputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledOutputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDeepTiledOutputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfDoubleAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfEnvmap.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfEnvmapAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfExport.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImage.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImageChannel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImageIO.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFlatImageLevel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFloatAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFloatVectorAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfForward.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFrameBuffer.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfFramesPerSecond.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfGenericInputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfGenericOutputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfHeader.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfHuf.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImage.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageChannel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageChannelRenaming.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageDataWindow.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageIO.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfImageLevel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfInputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfInputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfInt64.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfIntAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfIO.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfKeyCode.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfKeyCodeAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfLineOrder.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfLineOrderAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfLut.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMatrixAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMisc.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMultiPartInputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMultiPartOutputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfMultiView.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfName.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfNamespace.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfOpaqueAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfOutputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfOutputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPartHelper.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPartType.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPixelType.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPreviewImage.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfPreviewImageAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRational.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRationalAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRgba.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRgbaFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfRgbaYca.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfSampleCountChannel.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStandardAttributes.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStdIO.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStringAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfStringVectorAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTestFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfThreading.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTileDescription.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTileDescriptionAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledInputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledInputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledOutputFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledOutputPart.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTiledRgbaFile.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTimeCode.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfTimeCodeAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfUtilExport.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfVecAttribute.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfVersion.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfWav.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\ImfXdr.h" />
+    <ClInclude Include="packages\openexr-msvc-x64.2.3.0.8788\build\native\include\OpenEXR\OpenEXRConfig.h" />
+    <ClInclude Include="packages_misc\html_coder.hpp" />
+    <ClInclude Include="packages_misc\HybridDetect.h" />
+    <ClInclude Include="packages_misc\ImGuiNotify.hpp" />
+    <ClInclude Include="packages_misc\picosha2.h" />
+    <ClInclude Include="packages_misc\stb_image.h" />
+    <ClInclude Include="packages_misc\TextFlow.hpp" />
+    <ClInclude Include="packages_misc\vdf_parser.hpp" />
+    <ClInclude Include="resources\fonts\fa_621.h" />
+    <ClInclude Include="resources\fonts\fa_621b.h" />
+    <ClInclude Include="include\utility\games.h" />
+    <ClInclude Include="include\utility\registry.h" />
+    <ClInclude Include="include\utility\skif_imgui.h" />
+    <ClInclude Include="include\utility\utility.h" />
+    <ClInclude Include="resources\fonts\fa_brands_400.ttf.h" />
+    <ClInclude Include="resources\fonts\fa_solid_900.ttf.h" />
+    <ClInclude Include="include\utility\fsutil.h" />
+    <ClInclude Include="include\imgui\imconfig.h" />
+    <ClInclude Include="include\imgui\imgui.h" />
+    <ClInclude Include="include\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="include\imgui\imgui_internal.h" />
+    <ClInclude Include="include\imgui\imstb_rectpack.h" />
+    <ClInclude Include="include\imgui\imstb_textedit.h" />
+    <ClInclude Include="include\imgui\imstb_truetype.h" />
+    <ClInclude Include="resources\images\patreon.png.h" />
+    <ClInclude Include="resources\images\sk_boxart.png.h" />
+    <ClInclude Include="resources\images\sk_boxart2.jpg.h" />
+    <ClInclude Include="include\SKIV.h" />
+    <ClInclude Include="resources\images\sk_boxart.jpg.h" />
+    <ClInclude Include="resources\images\sk_icon.jpg.h" />
+    <ClInclude Include="include\utility\sk_utility.h" />
+    <ClInclude Include="include\tabs\common_ui.h" />
+    <ClInclude Include="include\tabs\viewer.h" />
+    <ClInclude Include="include\tabs\settings.h" />
+    <ClInclude Include="include\utility\updater.h" />
+    <ClInclude Include="include\utility\vfs.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="src\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="src\imgui\imgui_tables.cpp" />
+    <ClCompile Include="src\MinHook\buffer.c" />
+    <ClCompile Include="src\MinHook\hde\hde32.c" />
+    <ClCompile Include="src\MinHook\hde\hde64.c" />
+    <ClCompile Include="src\MinHook\hook.c" />
+    <ClCompile Include="src\MinHook\trampoline.c" />
+    <ClCompile Include="src\utility\DirectXTexEXR.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="src\utility\gamepad.cpp" />
+    <ClCompile Include="src\utility\image.cpp" />
+    <ClCompile Include="src\utility\registry.cpp" />
+    <ClCompile Include="src\utility\skif_imgui.cpp" />
+    <ClCompile Include="src\utility\utility.cpp" />
+    <ClCompile Include="src\utility\fsutil.cpp" />
+    <ClCompile Include="src\imgui\imgui.cpp" />
+    <ClCompile Include="src\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="src\SKIV.cpp" />
+    <ClCompile Include="src\utility\sk_utility.cpp" />
+    <ClCompile Include="src\tabs\common_ui.cpp" />
+    <ClCompile Include="src\tabs\viewer.cpp" />
+    <ClCompile Include="src\tabs\settings.cpp" />
+    <ClCompile Include="src\utility\updater.cpp" />
+    <ClCompile Include="src\utility\vfs.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SKIV.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\icons\SKIV.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="resources\shaders\imgui_pix_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">imgui_ps_bytecode</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(DefiningProjectDirectory)\resources\shaders\imgui_pix.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ObjectFileOutput>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">imgui_ps_bytecode</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(DefiningProjectDirectory)\resources\shaders\imgui_pix.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">imgui_ps_bytecode</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">imgui_ps_bytecode</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(DefiningProjectDirectory)\resources\shaders\imgui_pix.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ObjectFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(DefiningProjectDirectory)\resources\shaders\imgui_pix.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="resources\shaders\imgui_vtx_shader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(DefiningProjectDirectory)\resources\shaders\imgui_vtx.h</HeaderFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(DefiningProjectDirectory)\resources\shaders\imgui_vtx.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ObjectFileOutput>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">imgui_vs_bytecode</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">imgui_vs_bytecode</VariableName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">imgui_vs_bytecode</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">imgui_vs_bytecode</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(DefiningProjectDirectory)\resources\shaders\imgui_vtx.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ObjectFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(DefiningProjectDirectory)\resources\shaders\imgui_vtx.h</HeaderFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ObjectFileOutput>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="resources\appcompat.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="post_build.bat" />
+    <None Include="resources\shaders\calibration.hlsli" />
+    <None Include="resources\shaders\colorspaces.hlsli" />
+    <None Include="resources\shaders\tone_mapping.hlsli" />
+    <None Include="resources\shaders\visualization.hlsli" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\plog.1.1.9\build\native\plog.targets" Condition="Exists('packages\plog.1.1.9\build\native\plog.targets')" />
+    <Import Project="packages\pugixml.1.13.0\build\native\pugixml.targets" Condition="Exists('packages\pugixml.1.13.0\build\native\pugixml.targets')" />
+    <Import Project="packages\nlohmann.json.3.11.2\build\native\nlohmann.json.targets" Condition="Exists('packages\nlohmann.json.3.11.2\build\native\nlohmann.json.targets')" />
+    <Import Project="packages\directxtex_desktop_2019.2024.6.5.1\build\native\directxtex_desktop_2019.targets" Condition="Exists('packages\directxtex_desktop_2019.2024.6.5.1\build\native\directxtex_desktop_2019.targets')" />
+    <Import Project="packages\openexr-msvc-x64.2.3.0.8788\build\native\OpenEXR-msvc-x64.targets" Condition="Exists('packages\openexr-msvc-x64.2.3.0.8788\build\native\OpenEXR-msvc-x64.targets')" />
+    <Import Project="packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets" Condition="Exists('packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\plog.1.1.9\build\native\plog.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\plog.1.1.9\build\native\plog.targets'))" />
+    <Error Condition="!Exists('packages\pugixml.1.13.0\build\native\pugixml.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\pugixml.1.13.0\build\native\pugixml.targets'))" />
+    <Error Condition="!Exists('packages\nlohmann.json.3.11.2\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\nlohmann.json.3.11.2\build\native\nlohmann.json.targets'))" />
+    <Error Condition="!Exists('packages\directxtex_desktop_2019.2024.6.5.1\build\native\directxtex_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtex_desktop_2019.2024.6.5.1\build\native\directxtex_desktop_2019.targets'))" />
+    <Error Condition="!Exists('packages\openexr-msvc-x64.2.3.0.8788\build\native\OpenEXR-msvc-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openexr-msvc-x64.2.3.0.8788\build\native\OpenEXR-msvc-x64.targets'))" />
+    <Error Condition="!Exists('packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib-msvc-x64.1.2.11.8900\build\native\zlib-msvc-x64.targets'))" />
+  </Target>
+</Project>
